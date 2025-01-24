@@ -61,7 +61,7 @@
             });
 
             // Enviar datos a Google Sheets
-            const apiUrl = "https://script.google.com/macros/s/AKfycbzrFi2t59v21nkTAlj30-PNxQLP0j0Z6z3rawiPFAd1vNEXbHWKFYv-33QCLuJaRduEwQ/exec"; // Reemplaza con tu enlace API
+            const apiUrl = "https://script.google.com/macros/s/AKfycbwtKcasJpwZbfgYD0TdgOPgIOoVVItDXtCPmKSXx5t3WxO9TfSsZWR-3JVWTeFAayDjvA/exec"; // Reemplaza con tu enlace API
             fetch(apiUrl, {
                 method: "POST",
                 body: JSON.stringify({
