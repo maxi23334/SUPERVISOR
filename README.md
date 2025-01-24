@@ -44,9 +44,16 @@
                 zoom: 15,
             });
 
+            // Personalizar el marcador con un pin azul
+            const pinIcon = {
+                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", // URL del pin azul
+                scaledSize: new google.maps.Size(40, 40), // Tamaño del ícono
+            };
+
             new google.maps.Marker({
                 position: location,
                 map: map,
+                icon: pinIcon, // Asigna el ícono personalizado
                 title: "Tu ubicación",
             });
         }
