@@ -1,4 +1,4 @@
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,13 +53,13 @@
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    alert("El usuario denegó la solicitud de geolocalización.");
+                    alert("El usuario denegó el acceso a la ubicación.");
                     break;
                 case error.POSITION_UNAVAILABLE:
                     alert("La información de ubicación no está disponible.");
                     break;
                 case error.TIMEOUT:
-                    alert("La solicitud para obtener la ubicación ha expirado.");
+                    alert("La solicitud de ubicación tardó demasiado.");
                     break;
                 default:
                     alert("Se produjo un error desconocido.");
@@ -68,3 +68,4 @@
     </script>
 </body>
 </html>
+
