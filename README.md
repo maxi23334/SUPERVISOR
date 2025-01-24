@@ -20,6 +20,7 @@
     <script>
         let map;
 
+        // Función para obtener la ubicación
         function getLocation() {
             document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
             if (navigator.geolocation) {
@@ -29,13 +30,16 @@
             }
         }
 
+        // Mostrar la ubicación y enviar datos a Google Sheets
         function showPosition(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
+            const date = new Date();
 
             document.getElementById("output").innerHTML = `
                 <p><strong>Latitud:</strong> ${lat}</p>
                 <p><strong>Longitud:</strong> ${lng}</p>
+                <p><strong>Fecha y Hora:</strong> ${date}</p>
             `;
 
             const location = { lat, lng };
@@ -44,20 +48,41 @@
                 zoom: 15,
             });
 
-            // Personalizar el marcador con un pin azul
             const pinIcon = {
-                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", // URL del pin azul
-                scaledSize: new google.maps.Size(40, 40), // Tamaño del ícono
+                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                scaledSize: new google.maps.Size(40, 40),
             };
 
             new google.maps.Marker({
                 position: location,
                 map: map,
-                icon: pinIcon, // Asigna el ícono personalizado
+                icon: pinIcon,
                 title: "Tu ubicación",
             });
+
+            // Enviar datos a Google Sheets
+            const apiUrl = "https://script.google.com/macros/s/AKfycbx9pmXUrBsYUn1px0jne575iqPv_cLqu6l0o3-18yzT4-CCmFUC2WXtc5b7P_txRym86g/exec"; // Reemplaza con tu enlace API
+            fetch(apiUrl, {
+                method: "POST",
+                body: JSON.stringify({
+                    lat: lat,
+                    lng: lng,
+                    date: date.toISOString(),
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((response) => response.text())
+                .then((data) => {
+                    console.log("Datos enviados correctamente:", data);
+                })
+                .catch((error) => {
+                    console.error("Error al enviar los datos:", error);
+                });
         }
 
+        // Manejo de errores de geolocalización
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
@@ -67,7 +92,7 @@
                     alert("La información de ubicación no está disponible.");
                     break;
                 case error.TIMEOUT:
-                    alert("La solicitud para obtener la ubicación ha expirado.");
+                    alert("La solicitud de ubicación tardó demasiado.");
                     break;
                 default:
                     alert("Se produjo un error desconocido.");
@@ -76,3 +101,4 @@
     </script>
 </body>
 </html>
+
