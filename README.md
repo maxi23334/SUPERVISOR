@@ -21,6 +21,7 @@
         let map;
 
         function getLocation() {
+            document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else {
@@ -53,13 +54,13 @@
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    alert("El usuario denegó el acceso a la ubicación.");
+                    alert("El usuario denegó la solicitud de geolocalización.");
                     break;
                 case error.POSITION_UNAVAILABLE:
                     alert("La información de ubicación no está disponible.");
                     break;
                 case error.TIMEOUT:
-                    alert("La solicitud de ubicación tardó demasiado.");
+                    alert("La solicitud para obtener la ubicación ha expirado.");
                     break;
                 default:
                     alert("Se produjo un error desconocido.");
@@ -68,4 +69,3 @@
     </script>
 </body>
 </html>
-
