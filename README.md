@@ -2,12 +2,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa con Ubicación</title>
+    <title>Mapa con Fecha y Hora</title>
 </head>
 <body>
-    <h1>Mapa con Tu Ubicación</h1>
-    <button onclick="getLocation()">Mostrar Mi Ubicación</button>
+    <h1>Mapa con Fecha y Hora</h1>
+    <button onclick="getLocation()">Generar Mapa</button>
     <div id="output"></div>
+    <canvas id="mapCanvas" style="display: none;"></canvas>
     <script>
         function getLocation() {
             document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
@@ -21,28 +22,49 @@
         function showPosition(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            const date = new Date().toISOString();
+            const date = new Date();
+            const formattedDate = date.toLocaleString(); // Formatear la fecha y hora
 
-            // Construir la URL de Static Maps API
-            const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API
+            const apiKey = "TU_CLAVE_API"; // Reemplaza con tu clave API de Google Maps
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
 
-            // Mostrar la imagen en el navegador
-            const outputDiv = document.getElementById("output");
-            outputDiv.innerHTML = `
-                <p><strong>Latitud:</strong> ${lat}</p>
-                <p><strong>Longitud:</strong> ${lng}</p>
-                <p><strong>Fecha y Hora:</strong> ${date}</p>
-                <img src="${imageUrl}" alt="Mapa con tu ubicación">
-            `;
+            // Crear un objeto de imagen
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Permitir manipulación del canvas con imágenes externas
+            img.src = imageUrl;
 
-            // Descargar automáticamente la imagen
-            const a = document.createElement("a");
-            a.href = imageUrl;
-            a.download = `mapa_${date}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            img.onload = function () {
+                // Dibujar la imagen en el canvas
+                const canvas = document.getElementById("mapCanvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Superponer la fecha y hora
+                ctx.font = "20px Arial";
+                ctx.fillStyle = "white";
+                ctx.fillText(`Fecha y Hora: ${formattedDate}`, 10, img.height - 20);
+
+                // Mostrar la imagen generada
+                const outputDiv = document.getElementById("output");
+                const finalImg = new Image();
+                finalImg.src = canvas.toDataURL("image/png");
+                outputDiv.innerHTML = `
+                    <p><strong>Latitud:</strong> ${lat}</p>
+                    <p><strong>Longitud:</strong> ${lng}</p>
+                    <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
+                    <img src="${finalImg.src}" alt="Mapa con Fecha y Hora">
+                `;
+
+                // Descargar la imagen automáticamente
+                const a = document.createElement("a");
+                a.href = canvas.toDataURL("image/png");
+                a.download = `mapa_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
         }
 
         function showError(error) {
