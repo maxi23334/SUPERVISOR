@@ -2,13 +2,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa con Ubicación Precisa</title>
+    <title>Mapa Personalizado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo general */
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #111;
+        }
+
+        button {
+            background-color: #111;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        #output {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Mapa con Ubicación Precisa</h1>
+    <h1>Mapa Personalizado</h1>
     <button onclick="getLocation()">Generar Mapa</button>
     <div id="output"></div>
-    <canvas id="mapCanvas" style="display: none;"></canvas>
+    <canvas id="mapCanvas"></canvas>
     <script>
         function getLocation() {
             document.getElementById("output").innerHTML = "<p>Obteniendo ubicación precisa...</p>";
@@ -28,7 +100,7 @@
             const lng = position.coords.longitude;
             const date = new Date();
             const formattedDate = date.toLocaleString();
-            const zoomLevel = 18; // Zoom para mayor detalle
+            const zoomLevel = 18;
 
             const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API de Google Maps
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
@@ -60,18 +132,9 @@
                 outputDiv.innerHTML = `
                     <p><strong>Latitud:</strong> ${lat}</p>
                     <p><strong>Longitud:</strong> ${lng}</p>
-                    <p><strong>Precisión:</strong> ${position.coords.accuracy} metros</p>
                     <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
                     <img src="${finalImg.src}" alt="Mapa con Fecha y Hora">
                 `;
-
-                // Descargar la imagen automáticamente
-                const a = document.createElement("a");
-                a.href = canvas.toDataURL("image/png");
-                a.download = `mapa_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
             };
 
             img.onerror = function () {
@@ -97,3 +160,4 @@
     </script>
 </body>
 </html>
+
