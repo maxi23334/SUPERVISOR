@@ -25,12 +25,12 @@
             const date = new Date();
             const formattedDate = date.toLocaleString(); // Formatear la fecha y hora
 
-            const apiKey = "TU_CLAVE_API"; // Reemplaza con tu clave API de Google Maps
+            const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API de Google Maps
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
 
             // Crear un objeto de imagen
             const img = new Image();
-            img.crossOrigin = "Anonymous"; // Permitir manipulación del canvas con imágenes externas
+            img.crossOrigin = "anonymous"; // Permitir manipulación del canvas con imágenes externas
             img.src = imageUrl;
 
             img.onload = function () {
@@ -44,7 +44,9 @@
                 // Superponer la fecha y hora
                 ctx.font = "20px Arial";
                 ctx.fillStyle = "white";
-                ctx.fillText(`Fecha y Hora: ${formattedDate}`, 10, img.height - 20);
+                ctx.fillRect(10, img.height - 35, 580, 30); // Fondo blanco para el texto
+                ctx.fillStyle = "black";
+                ctx.fillText(`Fecha y Hora: ${formattedDate}`, 20, img.height - 15);
 
                 // Mostrar la imagen generada
                 const outputDiv = document.getElementById("output");
@@ -64,6 +66,10 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+            };
+
+            img.onerror = function () {
+                alert("Error al cargar la imagen del mapa. Verifica tu clave API.");
             };
         }
 
@@ -85,5 +91,3 @@
     </script>
 </body>
 </html>
-
-
