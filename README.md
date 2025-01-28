@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Personalizado</title>
+    <title>EL VIGILANTE MAPS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         /* Estilo general */
@@ -77,7 +77,7 @@
     </style>
 </head>
 <body>
-    <h1>Mapa Personalizado</h1>
+    <h1>EL VIGILANTE MAPS</h1>
     <button onclick="getLocation()">Generar Mapa</button>
     <div id="output"></div>
     <canvas id="mapCanvas"></canvas>
@@ -102,7 +102,7 @@
             const formattedDate = date.toLocaleString();
             const zoomLevel = 18;
 
-            const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API de Google Maps
+            const apiKey = "TU_CLAVE_API"; // Reemplaza con tu clave API de Google Maps
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
 
             // Crear un objeto de imagen
@@ -135,6 +135,14 @@
                     <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
                     <img src="${finalImg.src}" alt="Mapa con Fecha y Hora">
                 `;
+
+                // Descargar la imagen automáticamente
+                const a = document.createElement("a");
+                a.href = canvas.toDataURL("image/png");
+                a.download = `mapa_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             };
 
             img.onerror = function () {
@@ -160,3 +168,4 @@
     </script>
 </body>
 </html>
+
