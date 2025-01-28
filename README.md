@@ -2,18 +2,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa con Fecha y Hora</title>
+    <title>Mapa con Ubicación Precisa</title>
 </head>
 <body>
-    <h1>Mapa con Fecha y Hora</h1>
+    <h1>Mapa con Ubicación Precisa</h1>
     <button onclick="getLocation()">Generar Mapa</button>
     <div id="output"></div>
     <canvas id="mapCanvas" style="display: none;"></canvas>
     <script>
         function getLocation() {
-            document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
+            document.getElementById("output").innerHTML = "<p>Obteniendo ubicación precisa...</p>";
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
+                navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
+                });
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
             }
@@ -23,14 +27,15 @@
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const date = new Date();
-            const formattedDate = date.toLocaleString(); // Formatear la fecha y hora
+            const formattedDate = date.toLocaleString();
+            const zoomLevel = 18; // Zoom para mayor detalle
 
             const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API de Google Maps
-            const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
+            const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
 
             // Crear un objeto de imagen
             const img = new Image();
-            img.crossOrigin = "anonymous"; // Permitir manipulación del canvas con imágenes externas
+            img.crossOrigin = "anonymous";
             img.src = imageUrl;
 
             img.onload = function () {
@@ -44,7 +49,7 @@
                 // Superponer la fecha y hora
                 ctx.font = "20px Arial";
                 ctx.fillStyle = "white";
-                ctx.fillRect(10, img.height - 35, 580, 30); // Fondo blanco para el texto
+                ctx.fillRect(10, img.height - 35, 580, 30);
                 ctx.fillStyle = "black";
                 ctx.fillText(`Fecha y Hora: ${formattedDate}`, 20, img.height - 15);
 
@@ -55,6 +60,7 @@
                 outputDiv.innerHTML = `
                     <p><strong>Latitud:</strong> ${lat}</p>
                     <p><strong>Longitud:</strong> ${lng}</p>
+                    <p><strong>Precisión:</strong> ${position.coords.accuracy} metros</p>
                     <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
                     <img src="${finalImg.src}" alt="Mapa con Fecha y Hora">
                 `;
