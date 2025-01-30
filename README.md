@@ -9,8 +9,8 @@
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
-            background-color: #000000;
-            color: #333;
+            background-color: #111; /* Fondo negro */
+            color: #fff; /* Letras blancas */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,11 +23,11 @@
             font-size: 2rem;
             font-weight: 600;
             margin-bottom: 20px;
-            color: #111;
+            color: #fff; /* Letras blancas */
         }
 
         button {
-            background-color: #111;
+            background-color: #333; /* Color oscuro */
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -38,17 +38,17 @@
         }
 
         button:hover {
-            background-color: #333;
+            background-color: #555; /* Más claro al pasar el mouse */
         }
 
         #output {
             margin-top: 20px;
             width: 100%;
             max-width: 600px;
-            background-color: #fff;
+            background-color: #222; /* Fondo oscuro */
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); /* Sombra clara */
             opacity: 0;
             animation: fadeIn 0.5s forwards;
         }
@@ -120,9 +120,9 @@
 
                 // Superponer la fecha y hora
                 ctx.font = "20px Arial";
-                ctx.fillStyle = "white";
-                ctx.fillRect(10, img.height - 35, 580, 30);
                 ctx.fillStyle = "black";
+                ctx.fillRect(10, img.height - 35, 580, 30);
+                ctx.fillStyle = "white";
                 ctx.fillText(`Fecha y Hora: ${formattedDate}`, 20, img.height - 15);
 
                 // Mostrar la imagen generada
