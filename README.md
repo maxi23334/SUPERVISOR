@@ -19,12 +19,14 @@
             padding: 20px;
         }
 
-        h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #fff; /* Letras blancas */
-        }
+      h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #fff; /* Cambio a blanco */
+    text-align: center;
+}
+
 
         button {
             background-color: #333; /* Color oscuro */
