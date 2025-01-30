@@ -78,7 +78,7 @@
 </head>
 <body>
     <h1>EL VIGILANTE MAPS</h1>
-    <button onclick="getLocation()">Generar Mapa</button>
+    <button onclick="getLocation()">Generar Mapa Satelital</button>
     <div id="output"></div>
     <canvas id="mapCanvas"></canvas>
     <script>
@@ -103,7 +103,7 @@
             const zoomLevel = 18;
 
             const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API de Google Maps
-            const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&markers=color:blue|${lat},${lng}&key=${apiKey}`;
+            const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:red|${lat},${lng}&key=${apiKey}`;
 
             // Crear un objeto de imagen
             const img = new Image();
@@ -139,7 +139,7 @@
                 // Descargar la imagen automáticamente
                 const a = document.createElement("a");
                 a.href = canvas.toDataURL("image/png");
-                a.download = `mapa_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
+                a.download = `mapa_satelital_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
