@@ -9,7 +9,7 @@
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
+            background-color: #000000;
             color: #333;
             display: flex;
             flex-direction: column;
