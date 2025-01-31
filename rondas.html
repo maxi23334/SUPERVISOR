@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -52,6 +53,8 @@
         #output {
             margin-top: 20px;
             text-align: center;
+            width: 100%;
+            max-width: 600px;
         }
 
         img {
@@ -91,10 +94,11 @@
                     const date = new Date();
                     const formattedDate = date.toLocaleString();
                     const zoomLevel = 18;
-                    const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // Reemplaza con tu clave API
+                    const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // ⚠️ Reemplaza con tu clave API de Google Maps
 
-                    const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|${lat},${lng}&key=${apiKey}`;
+                    const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:R|${lat},${lng}&key=${apiKey}`;
 
+                    // Mostrar la información y el mapa generado
                     document.getElementById("output").innerHTML = `
                         <p><strong>Nombre:</strong> ${nombre}</p>
                         <p><strong>Objetivo:</strong> ${objetivo}</p>
@@ -131,4 +135,3 @@
 
 </body>
 </html>
-
