@@ -63,7 +63,7 @@
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const zoom = 18;
-            const apiKey = "TU_CLAVE_API";
+            const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M";
 
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=600x400&maptype=satellite&markers=color:red|${lat},${lng}&key=${apiKey}`;
             document.getElementById("output").innerHTML = `<img src="${imageUrl}" alt="Mapa Satelital">`;
