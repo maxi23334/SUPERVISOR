@@ -130,10 +130,18 @@
                         const finalImg = new Image();
                         finalImg.src = canvas.toDataURL("image/png");
 
-                        // Mostrar la imagen generada
+                        // Mostrar la imagen generada en la página
                         const outputDiv = document.getElementById("output");
                         outputDiv.innerHTML = "";
                         outputDiv.appendChild(finalImg);
+
+                        // Descargar la imagen automáticamente
+                        const a = document.createElement("a");
+                        a.href = canvas.toDataURL("image/png");
+                        a.download = `ronda_${nombre.replace(/\s+/g, "_")}_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
                     };
                 }, showError, {
                     enableHighAccuracy: true,
