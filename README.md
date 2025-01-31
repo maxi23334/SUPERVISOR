@@ -19,14 +19,21 @@
             padding: 20px;
         }
 
-      h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #fff; /* Cambio a blanco */
-    text-align: center;
-}
+        /* Estilo para el logo */
+        .logo {
+            width: 120px; /* Ajusta el tamaño del logo */
+            height: auto;
+            display: block;
+            margin: 0 auto 10px; /* Centrado con espacio debajo */
+        }
 
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff; /* Letras blancas */
+            text-align: center;
+        }
 
         button {
             background-color: #333; /* Color oscuro */
@@ -79,10 +86,16 @@
     </style>
 </head>
 <body>
+
+    <!-- Logo agregado arriba del título -->
+    <img src="img/escudo.png" alt="Escudo de El Vigilante" class="logo">
+    
     <h1>EL VIGILANTE MAPS</h1>
+    
     <button onclick="getLocation()">Generar Mapa Satelital</button>
     <div id="output"></div>
     <canvas id="mapCanvas"></canvas>
+
     <script>
         function getLocation() {
             document.getElementById("output").innerHTML = "<p>Obteniendo ubicación precisa...</p>";
@@ -168,5 +181,6 @@
             }
         }
     </script>
+
 </body>
 </html>
