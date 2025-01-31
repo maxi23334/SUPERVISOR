@@ -57,7 +57,7 @@
     <h1>EL VIGILANTE</h1>
 
     <div class="menu">
-        <button onclick="location.href='mapa.html'">🌍 Mapa Satelital</button>
+        <button onclick="location.href='mapa.html'">🌍 Ingreso y Salida</button>
         <button onclick="location.href='rondas.html'">📝 Rondas</button>
     </div>
 
