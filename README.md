@@ -21,22 +21,55 @@
 
         /* Estilo para el logo */
         .logo {
-            width: 120px; /* Ajusta el tamaño del logo */
+            width: 120px; /* Tamaño del logo */
             height: auto;
             display: block;
-            margin: 0 auto 10px; /* Centrado con espacio debajo */
+            margin: 0 auto 10px;
         }
 
         h1 {
             font-size: 2rem;
             font-weight: 600;
             margin-bottom: 20px;
-            color: #fff; /* Letras blancas */
+            color: #fff;
             text-align: center;
         }
 
+        /* Contenedor principal en dos columnas */
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 1200px;
+            height: 80vh;
+        }
+
+        .box {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Primera columna (Mapa) */
+        .left {
+            background-color: #222; /* Fondo oscuro */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Segunda columna (Imagen Similar) */
+        .right {
+            background-color: #333; /* Fondo oscuro */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         button {
-            background-color: #333; /* Color oscuro */
+            background-color: #333;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -47,19 +80,7 @@
         }
 
         button:hover {
-            background-color: #555; /* Más claro al pasar el mouse */
-        }
-
-        #output {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 600px;
-            background-color: #222; /* Fondo oscuro */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); /* Sombra clara */
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
+            background-color: #555;
         }
 
         img {
@@ -72,29 +93,40 @@
             display: none;
         }
 
-        /* Animaciones */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        /* Responsive: Poner en columna en pantallas pequeñas */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Logo agregado arriba del título -->
+    <!-- Logo arriba -->
     <img src="img/escudo.png" alt="Escudo de El Vigilante" class="logo">
     
     <h1>EL VIGILANTE MAPS</h1>
-    
-    <button onclick="getLocation()">Generar Mapa Satelital</button>
-    <div id="output"></div>
-    <canvas id="mapCanvas"></canvas>
+
+    <!-- Contenedor dividido en dos columnas -->
+    <div class="container">
+
+        <!-- Sección Izquierda (Mapa) -->
+        <div class="box left">
+            <h2>Mapa de Ubicación</h2>
+            <button onclick="getLocation()">Generar Mapa Satelital</button>
+            <div id="output"></div>
+            <canvas id="mapCanvas"></canvas>
+        </div>
+
+        <!-- Sección Derecha (Imagen Similar o Información Extra) -->
+        <div class="box right">
+            <h2>Zona Similar</h2>
+            <img src="img/escudo.png" alt="Imagen de referencia">
+        </div>
+
+    </div>
 
     <script>
         function getLocation() {
