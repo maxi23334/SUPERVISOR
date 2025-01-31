@@ -1,0 +1,96 @@
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rondas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            width: 250px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+        }
+
+        input {
+            background-color: #222;
+            color: white;
+        }
+
+        button {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Rondas</h1>
+
+    <input type="text" id="nombre" placeholder="Ingrese su nombre">
+    <input type="text" id="objetivo" placeholder="Ingrese el objetivo">
+    <button onclick="generarMapa()">Generar Mapa</button>
+
+    <div id="output"></div>
+
+    <script>
+        function generarMapa() {
+            const nombre = document.getElementById("nombre").value;
+            const objetivo = document.getElementById("objetivo").value;
+
+            if (!nombre || !objetivo) {
+                alert("Por favor, complete ambos campos.");
+                return;
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const zoom = 18;
+                    const apiKey = "TU_CLAVE_API";
+
+                    const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=600x400&maptype=satellite&markers=color:blue|${lat},${lng}&key=${apiKey}`;
+                    
+                    document.getElementById("output").innerHTML = `
+                        <p><strong>Nombre:</strong> ${nombre}</p>
+                        <p><strong>Objetivo:</strong> ${objetivo}</p>
+                        <img src="${imageUrl}" alt="Mapa de Ronda">
+                    `;
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>
