@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -74,6 +73,7 @@
     <button onclick="generarMapa()">Generar Mapa</button>
 
     <div id="output"></div>
+    <canvas id="mapCanvas" style="display:none;"></canvas>
 
     <script>
         function generarMapa() {
@@ -98,14 +98,43 @@
 
                     const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:R|${lat},${lng}&key=${apiKey}`;
 
-                    // Mostrar la información y el mapa generado
-                    document.getElementById("output").innerHTML = `
-                        <p><strong>Nombre:</strong> ${nombre}</p>
-                        <p><strong>Objetivo:</strong> ${objetivo}</p>
-                        <p><strong>Ubicación:</strong> Lat ${lat}, Lng ${lng}</p>
-                        <p><strong>Fecha y Hora:</strong> ${formattedDate}</p>
-                        <img src="${imageUrl}" alt="Mapa de Ronda">
-                    `;
+                    // Crear la imagen del mapa
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.src = imageUrl;
+
+                    img.onload = function () {
+                        // Dibujar el mapa en el canvas
+                        const canvas = document.getElementById("mapCanvas");
+                        const ctx = canvas.getContext("2d");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+
+                        // Superponer texto en la esquina superior izquierda
+                        ctx.font = "bold 16px Poppins";
+                        ctx.fillStyle = "white";
+                        ctx.textAlign = "left";
+
+                        // Fondo semitransparente detrás del texto
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                        ctx.fillRect(10, 10, 250, 70); // Ajusta tamaño del fondo
+
+                        // Texto en la esquina superior izquierda
+                        ctx.fillStyle = "white";
+                        ctx.fillText(`👤 ${nombre}`, 20, 30);
+                        ctx.fillText(`🎯 ${objetivo}`, 20, 50);
+                        ctx.fillText(`📅 ${formattedDate}`, 20, 70);
+
+                        // Convertir el canvas en una imagen final
+                        const finalImg = new Image();
+                        finalImg.src = canvas.toDataURL("image/png");
+
+                        // Mostrar la imagen generada
+                        const outputDiv = document.getElementById("output");
+                        outputDiv.innerHTML = "";
+                        outputDiv.appendChild(finalImg);
+                    };
                 }, showError, {
                     enableHighAccuracy: true,
                     timeout: 10000,
