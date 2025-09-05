@@ -1,100 +1,142 @@
-<script>
-  const webAppUrl = "https://script.google.com/macros/s/AKfycbwi3yDCm1mr0HmmWGYR34osBQiqQ5SiT6yotUDypnzCDk9vk2HnvFQ5kD1sfJmM-DGM/exec";
-  const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M";
-
-  async function enviarRegistro(tipo, nombre, objetivo, lat, lng) {
-    const res = await fetch(webAppUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-      body: JSON.stringify({ tipo, nombre, objetivo, lat, lng })
-    });
-    const txt = await res.text();
-    console.log("Servidor:", txt);
-    alert("Servidor: " + txt);
-    return txt;
-  }
-
-  function generarMapa() {
-    const nombre = document.getElementById("nombre").value.trim();
-    const objetivo = document.getElementById("objetivo").value.trim();
-    if (!nombre || !objetivo) {
-      alert("Por favor, complete ambos campos.");
-      return;
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rondas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; font-family: 'Poppins', sans-serif; background-color: #111; color: #fff;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
     }
-
-    document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
-
-    if (!navigator.geolocation) {
-      alert("La geolocalización no es compatible con este navegador.");
-      return;
+    h1 { font-size: 2rem; margin-bottom: 20px; }
+    input, button {
+      width: 250px; padding: 10px; margin: 10px 0; font-size: 1rem; border-radius: 5px; border: none;
     }
+    input { background-color: #222; color: white; text-align: center; }
+    button { background-color: #333; color: white; cursor: pointer; transition: background-color .3s ease; }
+    button:hover { background-color: #555; }
+    #output { margin-top: 20px; text-align: center; width: 100%; max-width: 600px; }
+    img { max-width: 100%; border-radius: 10px; margin-top: 15px; }
+  </style>
+</head>
+<body>
 
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      const date = new Date();
-      const formattedDate = date.toLocaleString();
-      const zoomLevel = 18;
+  <h1>Rondas</h1>
+  <input type="text" id="nombre" placeholder="Ingrese su nombre">
+  <input type="text" id="objetivo" placeholder="Ingrese el objetivo">
+  <button onclick="generarMapa()">Generar Mapa</button>
+  <button onclick="location.href='index.html'" style="margin-top: 10px;">⬅ Volver al Inicio</button>
 
-      // 1) Guardar primero en Sheets
+  <div id="output"></div>
+  <canvas id="mapCanvas" style="display:none;"></canvas>
+
+  <script>
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbwi3yDCm1mr0HmmWGYR34osBQiqQ5SiT6yotUDypnzCDk9vk2HnvFQ5kD1sfJmM-DGM/exec";
+    const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M";
+
+    async function enviarRegistro(tipo, nombre, objetivo, lat, lng) {
+      const params = new URLSearchParams({
+        tipo, nombre, objetivo, lat: String(lat), lng: String(lng)
+      });
       try {
-        await enviarRegistro("Ronda", nombre, objetivo, lat, lng);
+        await fetch(webAppUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: params.toString(),
+          cache: "no-store",
+          keepalive: true
+        });
+        alert("Enviado. Revisá la planilla (modo no-cors).");
+        return true;
       } catch (e) {
-        alert("No se pudo enviar a la planilla: " + e);
-        console.error(e);
+        console.warn("fetch no-cors falló, probando sendBeacon:", e);
       }
-
-      // 2) Generar imagen de mapa (independiente)
-      const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:R|${lat},${lng}&key=${apiKey}`;
-
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = imageUrl;
-
-      img.onload = function () {
-        const canvas = document.getElementById("mapCanvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        ctx.font = "bold 16px Poppins";
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fillRect(10, 10, 280, 72);
-        ctx.fillStyle = "white";
-        ctx.fillText(`👤 ${nombre}`, 20, 32);
-        ctx.fillText(`🎯 ${objetivo}`, 20, 52);
-        ctx.fillText(`📅 ${formattedDate}`, 20, 72);
-
-        const finalImg = new Image();
-        finalImg.src = canvas.toDataURL("image/png");
-        const outputDiv = document.getElementById("output");
-        outputDiv.innerHTML = "";
-        outputDiv.appendChild(finalImg);
-
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png");
-        a.download = `ronda_${nombre.replace(/\s+/g, "_")}_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      };
-
-      img.onerror = function () {
-        console.warn("No se pudo cargar la imagen del mapa. Igual se guardó el registro.");
-        const outputDiv = document.getElementById("output");
-        outputDiv.innerHTML = "<p>Registro guardado. (No se pudo cargar el mapa)</p>";
-      };
-    }, showError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-  }
-
-  function showError(error) {
-    switch (error.code) {
-      case error.PERMISSION_DENIED: alert("El usuario denegó la geolocalización."); break;
-      case error.POSITION_UNAVAILABLE: alert("La ubicación no está disponible."); break;
-      case error.TIMEOUT: alert("Tiempo agotado al obtener la ubicación."); break;
-      default: alert("Error desconocido obteniendo la ubicación.");
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([params.toString()], { type: "application/x-www-form-urlencoded;charset=UTF-8" });
+          const ok = navigator.sendBeacon(webAppUrl, blob);
+          alert(ok ? "Enviado con sendBeacon. Revisá la planilla." : "No se pudo enviar (sendBeacon).");
+          return ok;
+        }
+      } catch (e2) {
+        console.error("sendBeacon falló:", e2);
+      }
+      alert("No se pudo enviar el registro. Revisá conexión.");
+      return false;
     }
-  }
-</script>
+
+    async function generarMapa() {
+      const nombre = document.getElementById("nombre").value.trim();
+      const objetivo = document.getElementById("objetivo").value.trim();
+      if (!nombre || !objetivo) { alert("Por favor, complete ambos campos."); return; }
+
+      document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
+      if (!navigator.geolocation) { alert("La geolocalización no es compatible con este navegador."); return; }
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const date = new Date();
+        const formattedDate = date.toLocaleString();
+        const zoomLevel = 18;
+
+        // 1) Guardar primero en Sheets
+        await enviarRegistro("Ronda", nombre, objetivo, lat, lng);
+
+        // 2) Generar imagen de mapa (independiente del guardado)
+        const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:R|${lat},${lng}&key=${apiKey}`;
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = imageUrl;
+
+        img.onload = function () {
+          const canvas = document.getElementById("mapCanvas");
+          const ctx = canvas.getContext("2d");
+          canvas.width = img.width; canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          ctx.font = "bold 16px Poppins";
+          ctx.fillStyle = "rgba(0,0,0,.5)";
+          ctx.fillRect(10, 10, 280, 72);
+          ctx.fillStyle = "#fff";
+          ctx.fillText(`👤 ${nombre}`, 20, 32);
+          ctx.fillText(`🎯 ${objetivo}`, 20, 52);
+          ctx.fillText(`📅 ${formattedDate}`, 20, 72);
+
+          const finalImg = new Image();
+          finalImg.src = canvas.toDataURL("image/png");
+          const outputDiv = document.getElementById("output");
+          outputDiv.innerHTML = "";
+          outputDiv.appendChild(finalImg);
+
+          const a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.download = `ronda_${nombre.replace(/\s+/g,"_")}_${date.toISOString().replace(/[:.-]/g,"_")}.png`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+
+        img.onerror = function () {
+          console.warn("No se pudo cargar la imagen del mapa. Igual se guardó el registro.");
+          document.getElementById("output").innerHTML = "<p>Registro guardado. (No se pudo cargar el mapa)</p>";
+        };
+      }, showError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    }
+
+    function showError(error) {
+      switch (error.code) {
+        case error.PERMISSION_DENIED: alert("El usuario denegó la geolocalización."); break;
+        case error.POSITION_UNAVAILABLE: alert("Ubicación no disponible."); break;
+        case error.TIMEOUT: alert("Tiempo agotado al obtener la ubicación."); break;
+        default: alert("Error desconocido obteniendo la ubicación.");
+      }
+    }
+  </script>
+</body>
+</html>
 
 
 
