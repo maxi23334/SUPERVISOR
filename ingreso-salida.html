@@ -17,12 +17,7 @@
             min-height: 100vh;
             padding: 20px;
         }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-
+        h1 { font-size: 2rem; margin-bottom: 20px; }
         input, button {
             width: 250px;
             padding: 10px;
@@ -31,43 +26,21 @@
             border-radius: 5px;
             border: none;
         }
-
-        input {
-            background-color: #222;
-            color: white;
-            text-align: center;
-        }
-
+        input { background-color: #222; color: white; text-align: center; }
         button {
             background-color: #333;
             color: white;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-
-        button:hover {
-            background-color: #555;
-        }
-
-        #output {
-            margin-top: 20px;
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
+        button:hover { background-color: #555; }
+        #output { margin-top: 20px; text-align: center; width: 100%; max-width: 600px; }
+        img { max-width: 100%; border-radius: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <h1>Ingreso y Salida</h1>
-
     <input type="text" id="nombre" placeholder="Ingrese su nombre">
     <input type="text" id="objetivo" placeholder="Ingrese el objetivo">
     <button onclick="generarMapa()">Generar Mapa</button>
@@ -77,10 +50,11 @@
     <canvas id="mapCanvas" style="display:none;"></canvas>
 
     <script>
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbxuLH1T_XQmP-eGgXblwX-7hqZJpKK7N7mjRXS-sXd9N4nQXohrkGqYujVygChZXV2h/exec";
+
         function generarMapa() {
             const nombre = document.getElementById("nombre").value;
             const objetivo = document.getElementById("objetivo").value;
-
             if (!nombre || !objetivo) {
                 alert("Por favor, complete ambos campos.");
                 return;
@@ -89,67 +63,61 @@
             document.getElementById("output").innerHTML = "<p>Obteniendo ubicación...</p>";
 
             if (navigator.geolocation) {
-               console.log("Solicitando ubicación..."); 
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     const date = new Date();
                     const formattedDate = date.toLocaleString();
                     const zoomLevel = 18;
-                    const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M"; // ⚠️ Reemplaza con tu clave API de Google Maps
+                    const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M";
 
                     const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:I|${lat},${lng}&key=${apiKey}`;
 
-                    // Crear la imagen del mapa
                     const img = new Image();
                     img.crossOrigin = "anonymous";
                     img.src = imageUrl;
 
                     img.onload = function () {
-                        // Dibujar el mapa en el canvas
                         const canvas = document.getElementById("mapCanvas");
                         const ctx = canvas.getContext("2d");
                         canvas.width = img.width;
                         canvas.height = img.height;
                         ctx.drawImage(img, 0, 0);
 
-                        // Superponer texto en la esquina superior izquierda
                         ctx.font = "bold 16px Poppins";
-                        ctx.fillStyle = "white";
-                        ctx.textAlign = "left";
-
-                        // Fondo semitransparente detrás del texto
                         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-                        ctx.fillRect(10, 10, 250, 70); // Ajusta tamaño del fondo
-
-                        // Texto en la esquina superior izquierda
+                        ctx.fillRect(10, 10, 250, 70);
                         ctx.fillStyle = "white";
                         ctx.fillText(`👤 ${nombre}`, 20, 30);
                         ctx.fillText(`🎯 ${objetivo}`, 20, 50);
                         ctx.fillText(`📅 ${formattedDate}`, 20, 70);
 
-                        // Convertir el canvas en una imagen final
                         const finalImg = new Image();
                         finalImg.src = canvas.toDataURL("image/png");
-
-                        // Mostrar la imagen generada en la página
                         const outputDiv = document.getElementById("output");
                         outputDiv.innerHTML = "";
                         outputDiv.appendChild(finalImg);
 
-                        // Descargar la imagen automáticamente
+                        // Guardar en Google Sheets
+                        fetch(webAppUrl, {
+                            method: "POST",
+                            body: JSON.stringify({
+                                tipo: "Ingreso/Salida",
+                                nombre: nombre,
+                                objetivo: objetivo,
+                                lat: lat,
+                                lng: lng
+                            }),
+                            headers: { "Content-Type": "application/json" }
+                        }).then(r => console.log("Guardado en Sheets", r));
+
+                        // Descargar la imagen
                         const a = document.createElement("a");
                         a.href = canvas.toDataURL("image/png");
                         a.download = `ingreso_salida_${nombre.replace(/\s+/g, "_")}_${date.toISOString().replace(/[:.-]/g, "_")}.png`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
                     };
-                }, showError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+                }, showError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
             }
@@ -157,20 +125,13 @@
 
         function showError(error) {
             switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    alert("El usuario denegó la solicitud de geolocalización.");
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    alert("La información de ubicación no está disponible.");
-                    break;
-                case error.TIMEOUT:
-                    alert("La solicitud para obtener la ubicación ha expirado.");
-                    break;
-                default:
-                    alert("Se produjo un error desconocido.");
+                case error.PERMISSION_DENIED: alert("El usuario denegó la geolocalización."); break;
+                case error.POSITION_UNAVAILABLE: alert("Ubicación no disponible."); break;
+                case error.TIMEOUT: alert("Tiempo agotado."); break;
+                default: alert("Error desconocido.");
             }
         }
     </script>
-
 </body>
 </html>
+
