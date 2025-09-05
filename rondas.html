@@ -36,36 +36,19 @@
     const webAppUrl = "https://script.google.com/macros/s/AKfycbxCUgJRZ-BL0Qu9AGebtb7wexf2gWTWFFZI69VzxtaKiXidu_X6Bj1ifdWmFTYvUnSX/exec";
     const apiKey = "AIzaSyCgBKlv8-PhVtIt-QcZLwR9ZHpSTnugb8M";
 
-    async function enviarRegistro(tipo, nombre, objetivo, lat, lng) {
-      const params = new URLSearchParams({
-        tipo, nombre, objetivo, lat: String(lat), lng: String(lng)
+    function enviarRegistroGET(tipo, nombre, objetivo, lat, lng) {
+      const qs = new URLSearchParams({
+        tipo, nombre, objetivo, lat: String(lat), lng: String(lng),
+        t: Date.now().toString()
+      }).toString();
+
+      return new Promise(resolve => {
+        const beacon = new Image();
+        beacon.onload = () => { alert("Enviado (GET). Verificá la planilla."); resolve(true); };
+        beacon.onerror = () => { alert("Enviado (GET). Verificá la planilla."); resolve(true); };
+        beacon.src = webAppUrl + "?" + qs;
+        setTimeout(() => resolve(true), 1500);
       });
-      try {
-        await fetch(webAppUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body: params.toString(),
-          cache: "no-store",
-          keepalive: true
-        });
-        alert("Enviado. Revisá la planilla (modo no-cors).");
-        return true;
-      } catch (e) {
-        console.warn("fetch no-cors falló, probando sendBeacon:", e);
-      }
-      try {
-        if (navigator.sendBeacon) {
-          const blob = new Blob([params.toString()], { type: "application/x-www-form-urlencoded;charset=UTF-8" });
-          const ok = navigator.sendBeacon(webAppUrl, blob);
-          alert(ok ? "Enviado con sendBeacon. Revisá la planilla." : "No se pudo enviar (sendBeacon).");
-          return ok;
-        }
-      } catch (e2) {
-        console.error("sendBeacon falló:", e2);
-      }
-      alert("No se pudo enviar el registro. Revisá conexión.");
-      return false;
     }
 
     async function generarMapa() {
@@ -83,10 +66,10 @@
         const formattedDate = date.toLocaleString();
         const zoomLevel = 18;
 
-        // 1) Guardar primero en Sheets
-        await enviarRegistro("Ronda", nombre, objetivo, lat, lng);
+        // 1) Guardar primero (GET-beacon)
+        await enviarRegistroGET("Ronda", nombre, objetivo, lat, lng);
 
-        // 2) Generar imagen de mapa (independiente del guardado)
+        // 2) Generar imagen de mapa
         const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoomLevel}&size=600x400&maptype=satellite&markers=color:blue|label:R|${lat},${lng}&key=${apiKey}`;
 
         const img = new Image();
@@ -101,17 +84,16 @@
 
           ctx.font = "bold 16px Poppins";
           ctx.fillStyle = "rgba(0,0,0,.5)";
-          ctx.fillRect(10, 10, 280, 72);
+          ctx.fillRect(10, 10, 300, 76);
           ctx.fillStyle = "#fff";
-          ctx.fillText(`👤 ${nombre}`, 20, 32);
-          ctx.fillText(`🎯 ${objetivo}`, 20, 52);
-          ctx.fillText(`📅 ${formattedDate}`, 20, 72);
+          ctx.fillText(`👤 ${nombre}`, 20, 34);
+          ctx.fillText(`🎯 ${objetivo}`, 20, 54);
+          ctx.fillText(`📅 ${formattedDate}`, 20, 74);
 
           const finalImg = new Image();
           finalImg.src = canvas.toDataURL("image/png");
-          const outputDiv = document.getElementById("output");
-          outputDiv.innerHTML = "";
-          outputDiv.appendChild(finalImg);
+          const out = document.getElementById("output");
+          out.innerHTML = ""; out.appendChild(finalImg);
 
           const a = document.createElement("a");
           a.href = canvas.toDataURL("image/png");
@@ -120,7 +102,6 @@
         };
 
         img.onerror = function () {
-          console.warn("No se pudo cargar la imagen del mapa. Igual se guardó el registro.");
           document.getElementById("output").innerHTML = "<p>Registro guardado. (No se pudo cargar el mapa)</p>";
         };
       }, showError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
@@ -137,7 +118,3 @@
   </script>
 </body>
 </html>
-
-
-
-
