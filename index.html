@@ -1,206 +1,276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8">
   <title>EL VIGILANTE - Inicio</title>
-  <!-- Evita 404 de favicon -->
-  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
   <style>
-    :root {
-      --bg:#0f1115; --panel:#151924; --text:#f6f7fb; --muted:#aab0c0; --primary:#2d6cdf; --primary-2:#234fa4; --ok:#20c997; --warn:#ffc107;
-      --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.3);
+    :root{ --bg:#111; --fg:#fff; --muted:#aaa; --card:#181818; --btn:#333; --btnh:#555; --accent:#0ea5e9; }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--fg);
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: radial-gradient(80vw 80vh at 50% -10%, #1a1f2c 0%, var(--bg) 55%);
-      color: var(--text); min-height: 100vh; display: grid; place-items: center; padding: 28px;
+    .container{ width:min(900px,92vw); padding:24px; }
+
+    /* Vistas */
+    .view{ display:none; text-align:center; }
+    .view.active{ display:block; }
+
+    /* Comunes */
+    .logo{ width:120px; margin:0 auto 16px; display:block; }
+    h1{ font-size:2rem; margin:.25rem 0 1rem; }
+    .subtitle{ color:var(--muted); margin-bottom:1.25rem; }
+    .menu{ display:flex; flex-direction:column; gap:14px; align-items:center; }
+
+    button, .btn{
+      background:var(--btn); color:#fff; border:none; border-radius:10px;
+      padding:14px 22px; font-size:1.05rem; cursor:pointer; transition:background .2s ease;
+      width:280px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
     }
-    .wrap { width: 100%; max-width: 920px; }
-    header {
-      display:flex; align-items:center; gap:18px; margin-bottom: 20px;
+    button:hover, .btn:hover{ background:var(--btnh); }
+
+    /* Admin (nueva) */
+    .cards{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:12px;
     }
-    .logo { width:64px; height:64px; border-radius:14px; background:#111; display:grid; place-items:center; box-shadow:var(--shadow); overflow:hidden; }
-    .logo img { width:100%; height:100%; object-fit:cover; }
-    h1 { margin:0; font-size: clamp(1.6rem, 2vw + 1rem, 2.2rem); letter-spacing:.3px; }
-    .grid {
-      display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;
+    .card{ background:var(--card); border:1px solid #222; border-radius:14px; padding:16px; text-align:left; }
+    .card h3{ margin:0 0 8px; font-size:1.05rem; }
+    .card p{ margin:0; color:var(--muted); font-size:.95rem; }
+
+    /* Switch flotante */
+    .switch{
+      position:fixed; right:14px; bottom:14px; background:var(--accent);
+      color:#001018; border:none; border-radius:999px; padding:10px 14px; font-weight:600; cursor:pointer;
+      box-shadow:0 6px 18px rgba(14,165,233,.35);
     }
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
+    .role-badge{
+      display:inline-block; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:600;
+      background:rgba(255,255,255,.08); border:1px solid #2a2a2a; color:#ddd; margin-top:6px;
     }
-    .card h2 { margin:0 0 10px; font-size:1.05rem; font-weight:600; }
-    .btn {
-      width: 100%; padding: 14px 16px; border: none; border-radius: 12px;
-      background: var(--primary); color:#fff; font-weight:600; font-size:1.02rem;
-      cursor: pointer; transition: transform .04s ease, background .2s ease;
+
+    /* Vigilador (anterior) */
+    .vigilador .menu button{ width:250px; }
+
+    /* Modal contraseña */
+    .modal{
+      position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:16px;
     }
-    .btn:hover { background: var(--primary-2); }
-    .btn:active { transform: translateY(1px) scale(.997); }
-    .btn.secondary {
-      background: #242a3b; color:#fff; border:1px solid rgba(255,255,255,.1);
+    .modal.show{ display:flex; }
+    .modal-card{
+      width:100%; max-width:360px; background:#171717; border:1px solid #262626; border-radius:14px; padding:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
     }
-    .btn.secondary:hover { background:#2b3246; }
-    .row { display:flex; flex-direction:column; gap:10px; }
-    .note { color: var(--muted); font-size:.92rem; line-height:1.4; }
-    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#202538; color:#cfe1ff; font-size:.85rem; }
-    .ok { color:#0bd; }
-    .warn { color:#ffcd55; }
-    footer { margin-top:18px; color:var(--muted); font-size:.9rem; text-align:center; }
-    .kpis { display:flex; gap:10px; flex-wrap:wrap; }
-    .kpi { flex:1 1 120px; min-width: 120px; padding:10px 12px; background:#131828; border:1px solid rgba(255,255,255,.07); border-radius:12px; }
-    .kpi b { display:block; font-size:1.1rem; }
-    .kpi span { color:var(--muted); font-size:.85rem; }
-    .input {
-      width:100%; padding:12px 14px; border-radius:10px; background:#141a29; color:#eaf0ff; border:1px solid rgba(255,255,255,.08);
+    .modal-card h3{ margin:0 0 10px; font-size:1.1rem; }
+    .modal-card p{ margin:0 0 12px; color:#bbb; font-size:.95rem; }
+    .modal-card input{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2a2a2a; background:#1f1f1f; color:#fff; outline:none;
     }
+    .row{ display:flex; gap:10px; margin-top:12px; }
+    .row .btn{ width:100%; justify-content:center; }
+    .err{ color:#ff6b6b; font-size:.9rem; margin-top:8px; min-height:1em; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">
-        <!-- Cambiá por tu imagen si querés -->
-        <img src="img/escudo.png" alt="Escudo">
-      </div>
-      <div>
-        <h1>EL VIGILANTE</h1>
-        <div class="pill"><span>Estado:</span><span id="estado" class="warn">sin verificar</span></div>
-      </div>
-    </header>
+  <div class="container">
+    <!-- VISTA ADMIN (NUEVA) -->
+    <section id="view-admin" class="view">
+      <img src="img/escudo.png" alt="Escudo" class="logo">
+      <h1>EL VIGILANTE</h1>
+      <div class="role-badge">Vista: Admin</div>
+      <p class="subtitle">Panel principal</p>
 
-    <div class="grid">
-      <!-- Navegación principal -->
-      <section class="card">
-        <h2>Acciones</h2>
-        <div class="row">
-          <button class="btn" onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
-          <button class="btn" onclick="location.href='rondas.html'">📝 Rondas</button>
-        </div>
-      </section>
-
-      <!-- Diagnóstico rápido -->
-      <section class="card">
-        <h2>Diagnóstico rápido</h2>
-        <div class="kpis">
-          <div class="kpi">
-            <b id="k_backend">—</b>
-            <span>Backend (Apps Script)</span>
-          </div>
-          <div class="kpi">
-            <b id="k_guardado">—</b>
-            <span>Prueba de guardado</span>
+      <div class="cards">
+        <div class="card">
+          <h3>Accesos rápidos</h3>
+          <div class="menu" style="margin-top:10px;">
+            <a class="btn" href="ingreso-salida.html">🚪 Ingreso y Salida</a>
+            <a class="btn" href="rondas.html">📝 Rondas</a>
           </div>
         </div>
-        <div class="row" style="margin-top:12px">
-          <button class="btn secondary" onclick="probarPing()">🔎 Probar backend (abre ping)</button>
-          <button class="btn secondary" onclick="probarGuardado()">✅ Prueba de guardado (abre URL)</button>
+        <div class="card">
+          <h3>Reportes</h3>
+          <p>Revisa los baches de rondas y el reporte diario (08:00) en Telegram.</p>
         </div>
-        <p class="note" style="margin-top:10px">
-          Los tests abren una pestaña con tu Web App. Si ves <span class="mono">UP …</span> o <span class="mono">OK GET…</span>,
-          la comunicación está bien y la planilla debería sumar una fila.
-        </p>
-      </section>
+        <div class="card">
+          <h3>Estado</h3>
+          <p>WebApp: <span id="status-webapp">—</span></p>
+        </div>
+      </div>
+    </section>
 
-      <!-- Config visible / edición rápida -->
-      <section class="card">
-        <h2>Configuración</h2>
-        <label class="note">URL de Web App (Apps Script)</label>
-        <input id="webapp" class="input mono" />
-        <div class="row" style="margin-top:10px">
-          <button class="btn secondary" onclick="guardarURL()">💾 Guardar URL</button>
-          <button class="btn secondary" onclick="restaurarURL()">↩️ Restaurar</button>
-        </div>
-        <p class="note" style="margin-top:10px">
-          Si re-implementás la app web en Apps Script, copiá aquí la nueva URL <span class="mono">/exec</span> y guardá.
-        </p>
-      </section>
+    <!-- VISTA VIGILADOR (ANTERIOR) -->
+    <section id="view-vigilador" class="view vigilador">
+      <img src="img/escudo.png" alt="Escudo" class="logo">
+      <h1>EL VIGILANTE</h1>
+      <div class="role-badge">Vista: Vigilador</div>
+      <div class="menu" style="margin-top:16px;">
+        <button onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
+        <button onclick="location.href='rondas.html'">📝 Rondas</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Botón flotante para cambiar vista -->
+  <button class="switch" id="btn-switch" title="Cambiar vista">Cambiar vista</button>
+
+  <!-- Modal contraseña -->
+  <div class="modal" id="pwd-modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3>Acceso Admin</h3>
+      <p>Ingresá la contraseña para ver la vista de administrador.</p>
+      <input id="pwd-input" type="password" placeholder="Contraseña" autocomplete="current-password">
+      <div class="err" id="pwd-err"></div>
+      <div class="row">
+        <button class="btn" id="pwd-cancel">Cancelar</button>
+        <button class="btn" id="pwd-ok">Entrar</button>
+      </div>
     </div>
-
-    <footer>
-      <div class="note">
-        Consejo: probá la app desde <span class="mono">http://localhost</span> o tu dominio (no <span class="mono">file://</span>).
-        Para el mapa, asegurate de tener <b>Maps Static API</b> habilitada y la API key restringida por referrer.
-      </div>
-    </footer>
   </div>
 
   <script>
-    // 👉 URL de tu implementación actual (podés cambiarla desde la tarjeta "Configuración")
-    const DEFAULT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxCUgJRZ-BL0Qu9AGebtb7wexf2gWTWFFZI69VzxtaKiXidu_X6Bj1ifdWmFTYvUnSX/exec";
+    // ====== Config opcional de ping de salud (dejar vacío si no querés) ======
+    const WEBAPP_PING_URL = ""; // por ej: "https://script.google.com/.../exec"
+    // ========================================================================
 
-    // ----- Estado y helpers -----
-    const $ = sel => document.querySelector(sel);
-    function getWebAppUrl() {
-      return localStorage.getItem('vig_webapp_url') || DEFAULT_WEBAPP_URL;
-    }
-    function setEstado(texto, ok=false) {
-      $('#estado').textContent = texto;
-      $('#estado').className = ok ? 'ok' : 'warn';
-    }
-    function setKpi(id, texto) { $(id).textContent = texto; }
+    const V_ADMIN = 'admin';
+    const V_VIGI  = 'vigilador';
 
-    // ----- Acciones de diagnóstico -----
-    function probarPing() {
-      const url = getWebAppUrl();
-      // Abrimos el ping en otra pestaña: Apps Script no siempre permite leer CORS desde fetch
-      window.open(url, '_blank');
-      setKpi('#k_backend', 'Ping abierto');
-      setEstado('probando…', false);
-      // Marcamos como verificado al abrir, el resultado lo ves en la pestaña
-      setTimeout(()=> setEstado('verificar en pestaña', false), 300);
+    // SHA-256("maximo3636") en hex (para no exponer texto plano en el código)
+    const ADMIN_PASS_HASH = "faac93ccc2814d37d89402b846e6089045593a9c2425273638125528ba231de3";
+
+    const qSel = s => document.querySelector(s);
+    const viewAdmin = qSel('#view-admin');
+    const viewVigi  = qSel('#view-vigilador');
+    const btnSwitch = qSel('#btn-switch');
+
+    const modal   = qSel('#pwd-modal');
+    const pwdIn   = qSel('#pwd-input');
+    const pwdErr  = qSel('#pwd-err');
+    const pwdOk   = qSel('#pwd-ok');
+    const pwdCancel = qSel('#pwd-cancel');
+
+    // ========= Utilidades =========
+    function getParam(name){
+      const m = new URLSearchParams(location.search).get(name);
+      return m ? String(m) : null;
+    }
+    function setRole(role){
+      localStorage.setItem('role', role);
+    }
+    function getSavedRole(){
+      return localStorage.getItem('role') || V_VIGI;
+    }
+    async function sha256Hex(text){
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest('SHA-256', enc);
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
     }
 
-    function probarGuardado() {
-      const url = getWebAppUrl();
-      const qs = new URLSearchParams({
-        tipo: 'Ronda',
-        nombre: 'Prueba_Index',
-        objetivo: 'Ping',
-        lat: '-31.52',
-        lng: '-68.53',
-        t: Date.now().toString()
+    function show(role){
+      if (role === V_ADMIN){
+        viewAdmin.classList.add('active');
+        viewVigi.classList.remove('active');
+        btnSwitch.textContent = 'Cambiar a Vigilador';
+      } else {
+        viewVigi.classList.add('active');
+        viewAdmin.classList.remove('active');
+        btnSwitch.textContent = 'Cambiar a Admin';
+      }
+    }
+
+    // ========= Gate de Admin =========
+    async function requireAdmin(){
+      // ya desbloqueado en esta máquina?
+      if (localStorage.getItem('adminUnlocked') === '1') return true;
+
+      // abrir modal
+      return new Promise(resolve=>{
+        pwdErr.textContent = '';
+        pwdIn.value = '';
+        modal.classList.add('show');
+        pwdIn.focus();
+
+        async function tryLogin(){
+          const hash = await sha256Hex(pwdIn.value);
+          if (hash === ADMIN_PASS_HASH){
+            localStorage.setItem('adminUnlocked','1');
+            modal.classList.remove('show');
+            resolve(true);
+          } else {
+            pwdErr.textContent = 'Contraseña incorrecta.';
+            pwdIn.select();
+          }
+        }
+
+        function cancel(){
+          modal.classList.remove('show');
+          resolve(false);
+        }
+
+        pwdOk.onclick = tryLogin;
+        pwdCancel.onclick = cancel;
+        pwdIn.onkeydown = (e)=>{ if(e.key==='Enter') tryLogin(); if(e.key==='Escape') cancel(); };
       });
-      const testUrl = url + '?' + qs.toString();
-      window.open(testUrl, '_blank'); // te muestra "OK GET …"
-      setKpi('#k_guardado', 'Intentado');
-      setEstado('probando…', false);
-      setTimeout(()=> setEstado('verificar en pestaña', false), 300);
     }
 
-    // ----- Config editable -----
-    function cargarUI() {
-      $('#webapp').value = getWebAppUrl();
-      setEstado('listo', true);
-      setKpi('#k_backend', '—');
-      setKpi('#k_guardado', '—');
-    }
-    function guardarURL() {
-      const val = ($('#webapp').value || '').trim();
-      if (!val || !/^https?:\/\//i.test(val)) { alert('Ingresá una URL válida'); return; }
-      localStorage.setItem('vig_webapp_url', val);
-      setEstado('URL actualizada', true);
-    }
-    function restaurarURL() {
-      localStorage.removeItem('vig_webapp_url');
-      $('#webapp').value = DEFAULT_WEBAPP_URL;
-      setEstado('URL restaurada', true);
+    async function goAdmin(){
+      const ok = await requireAdmin();
+      if (ok){
+        setRole(V_ADMIN);
+        show(V_ADMIN);
+      } else {
+        // si falla, volvemos a vigilador
+        setRole(V_VIGI);
+        show(V_VIGI);
+      }
     }
 
-    // Init
-    cargarUI();
+    // ========= Init =========
+    (async function init(){
+      // rol por querystring o guardado
+      const qRole = getParam('role');
+      let role = (qRole===V_ADMIN || qRole===V_VIGI) ? qRole : getSavedRole();
+
+      if (role === V_ADMIN){
+        const ok = await requireAdmin();
+        role = ok ? V_ADMIN : V_VIGI;
+        setRole(role);
+      } else {
+        setRole(V_VIGI);
+      }
+      show(role);
+
+      // botón switch
+      btnSwitch.addEventListener('click', async ()=>{
+        const current = localStorage.getItem('role') || V_VIGI;
+        if (current === V_VIGI) {
+          await goAdmin();
+        } else {
+          setRole(V_VIGI); show(V_VIGI);
+        }
+      });
+
+      // atajos: Shift+V / Shift+A
+      window.addEventListener('keydown', async (e)=>{
+        if (!e.shiftKey) return;
+        if (e.key.toLowerCase()==='v'){ setRole(V_VIGI); show(V_VIGI); }
+        if (e.key.toLowerCase()==='a'){ await goAdmin(); }
+      });
+
+      // ping opcional
+      if (WEBAPP_PING_URL){
+        const el = document.getElementById('status-webapp');
+        if (el){
+          try{
+            const r = await fetch(WEBAPP_PING_URL, { method:'GET', cache:'no-store' });
+            el.textContent = r.ok ? 'UP' : ('Error '+r.status);
+          }catch(err){ el.textContent = 'Sin conexión'; }
+        }
+      }
+    })();
   </script>
 </body>
 </html>
-
-
-
-
-
