@@ -1,34 +1,70 @@
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EL VIGILANTE - Inicio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0; font-family: 'Poppins', sans-serif; background-color: #111; color: #fff;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh; text-align: center;
+export default {
+  async fetch(req, env) {
+    const origin = req.headers.get('Origin') || '';
+    const allowed = (env.ALLOWED_ORIGINS || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const isAllowed = allowed.some(p => origin === p || origin.startsWith(p));
+
+    // CORS preflight
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders(origin, isAllowed) });
     }
-    .logo { width: 120px; margin-bottom: 20px; }
-    h1 { font-size: 2rem; margin-bottom: 20px; }
-    .menu { display: flex; flex-direction: column; gap: 15px; }
-    button {
-      background-color: #333; color: #fff; border: none; border-radius: 5px;
-      padding: 15px 30px; font-size: 1.2rem; cursor: pointer; transition: background-color .3s ease; width: 250px;
+
+    if (req.method !== 'POST') {
+      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders(origin, isAllowed) });
     }
-    button:hover { background-color: #555; }
-  </style>
-</head>
-<body>
-  <img src="img/escudo.png" alt="Escudo" class="logo">
-  <h1>EL VIGILANTE</h1>
-  <div class="menu">
-    <button onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
-    <button onclick="location.href='rondas.html'">📝 Rondas</button>
-  </div>
-</body>
-</html>
+
+    let body = {};
+    try {
+      body = await req.json();
+    } catch {
+      return new Response('BAD_REQUEST', { status: 400, headers: corsHeaders(origin, isAllowed) });
+    }
+
+    // Campos esperados
+    const { tipo, nombre, objetivo, lat, lng, recaptchaToken } = body || {};
+
+    // reCAPTCHA v3 (server-side)
+    if (!recaptchaToken) return new Response('FORBIDDEN', { status: 403, headers: corsHeaders(origin, isAllowed) });
+    const vr = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      body: new URLSearchParams({ secret: env.RECAPTCHA_SECRET, response: recaptchaToken })
+    });
+    const vj = await vr.json().catch(() => ({}));
+    if (!vj.success || (vj.score || 0) < 0.5) {
+      return new Response('FORBIDDEN', { status: 403, headers: corsHeaders(origin, isAllowed) });
+    }
+
+    // Validaciones mínimas
+    const _lat = Number(lat), _lng = Number(lng);
+    if (!tipo || !nombre || !objetivo || Number.isNaN(_lat) || Number.isNaN(_lng)) {
+      return new Response('BAD_REQUEST', { status: 400, headers: corsHeaders(origin, isAllowed) });
+    }
+
+    // Forward limpio a Apps Script (sin recaptchaToken)
+    const resp = await fetch(env.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ tipo, nombre, objetivo, lat: _lat, lng: _lng })
+    });
+
+    const text = await resp.text();
+    return new Response(text, { status: resp.status, headers: corsHeaders(origin, isAllowed) });
+  }
+};
+
+function corsHeaders(origin, isAllowed) {
+  const h = {
+    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'content-type',
+    'Vary': 'Origin'
+  };
+  if (isAllowed) h['Access-Control-Allow-Origin'] = origin;
+  return h;
+}
 
 
 
