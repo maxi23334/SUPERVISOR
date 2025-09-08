@@ -1,70 +1,205 @@
-export default {
-  async fetch(req, env) {
-    const origin = req.headers.get('Origin') || '';
-    const allowed = (env.ALLOWED_ORIGINS || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EL VIGILANTE - Inicio</title>
+  <!-- Evita 404 de favicon -->
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0f1115; --panel:#151924; --text:#f6f7fb; --muted:#aab0c0; --primary:#2d6cdf; --primary-2:#234fa4; --ok:#20c997; --warn:#ffc107;
+      --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.3);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(80vw 80vh at 50% -10%, #1a1f2c 0%, var(--bg) 55%);
+      color: var(--text); min-height: 100vh; display: grid; place-items: center; padding: 28px;
+    }
+    .wrap { width: 100%; max-width: 920px; }
+    header {
+      display:flex; align-items:center; gap:18px; margin-bottom: 20px;
+    }
+    .logo { width:64px; height:64px; border-radius:14px; background:#111; display:grid; place-items:center; box-shadow:var(--shadow); overflow:hidden; }
+    .logo img { width:100%; height:100%; object-fit:cover; }
+    h1 { margin:0; font-size: clamp(1.6rem, 2vw + 1rem, 2.2rem); letter-spacing:.3px; }
+    .grid {
+      display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .card h2 { margin:0 0 10px; font-size:1.05rem; font-weight:600; }
+    .btn {
+      width: 100%; padding: 14px 16px; border: none; border-radius: 12px;
+      background: var(--primary); color:#fff; font-weight:600; font-size:1.02rem;
+      cursor: pointer; transition: transform .04s ease, background .2s ease;
+    }
+    .btn:hover { background: var(--primary-2); }
+    .btn:active { transform: translateY(1px) scale(.997); }
+    .btn.secondary {
+      background: #242a3b; color:#fff; border:1px solid rgba(255,255,255,.1);
+    }
+    .btn.secondary:hover { background:#2b3246; }
+    .row { display:flex; flex-direction:column; gap:10px; }
+    .note { color: var(--muted); font-size:.92rem; line-height:1.4; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#202538; color:#cfe1ff; font-size:.85rem; }
+    .ok { color:#0bd; }
+    .warn { color:#ffcd55; }
+    footer { margin-top:18px; color:var(--muted); font-size:.9rem; text-align:center; }
+    .kpis { display:flex; gap:10px; flex-wrap:wrap; }
+    .kpi { flex:1 1 120px; min-width: 120px; padding:10px 12px; background:#131828; border:1px solid rgba(255,255,255,.07); border-radius:12px; }
+    .kpi b { display:block; font-size:1.1rem; }
+    .kpi span { color:var(--muted); font-size:.85rem; }
+    .input {
+      width:100%; padding:12px 14px; border-radius:10px; background:#141a29; color:#eaf0ff; border:1px solid rgba(255,255,255,.08);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <!-- Cambiá por tu imagen si querés -->
+        <img src="img/escudo.png" alt="Escudo">
+      </div>
+      <div>
+        <h1>EL VIGILANTE</h1>
+        <div class="pill"><span>Estado:</span><span id="estado" class="warn">sin verificar</span></div>
+      </div>
+    </header>
 
-    const isAllowed = allowed.some(p => origin === p || origin.startsWith(p));
+    <div class="grid">
+      <!-- Navegación principal -->
+      <section class="card">
+        <h2>Acciones</h2>
+        <div class="row">
+          <button class="btn" onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
+          <button class="btn" onclick="location.href='rondas.html'">📝 Rondas</button>
+        </div>
+      </section>
 
-    // CORS preflight
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders(origin, isAllowed) });
+      <!-- Diagnóstico rápido -->
+      <section class="card">
+        <h2>Diagnóstico rápido</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <b id="k_backend">—</b>
+            <span>Backend (Apps Script)</span>
+          </div>
+          <div class="kpi">
+            <b id="k_guardado">—</b>
+            <span>Prueba de guardado</span>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn secondary" onclick="probarPing()">🔎 Probar backend (abre ping)</button>
+          <button class="btn secondary" onclick="probarGuardado()">✅ Prueba de guardado (abre URL)</button>
+        </div>
+        <p class="note" style="margin-top:10px">
+          Los tests abren una pestaña con tu Web App. Si ves <span class="mono">UP …</span> o <span class="mono">OK GET…</span>,
+          la comunicación está bien y la planilla debería sumar una fila.
+        </p>
+      </section>
+
+      <!-- Config visible / edición rápida -->
+      <section class="card">
+        <h2>Configuración</h2>
+        <label class="note">URL de Web App (Apps Script)</label>
+        <input id="webapp" class="input mono" />
+        <div class="row" style="margin-top:10px">
+          <button class="btn secondary" onclick="guardarURL()">💾 Guardar URL</button>
+          <button class="btn secondary" onclick="restaurarURL()">↩️ Restaurar</button>
+        </div>
+        <p class="note" style="margin-top:10px">
+          Si re-implementás la app web en Apps Script, copiá aquí la nueva URL <span class="mono">/exec</span> y guardá.
+        </p>
+      </section>
+    </div>
+
+    <footer>
+      <div class="note">
+        Consejo: probá la app desde <span class="mono">http://localhost</span> o tu dominio (no <span class="mono">file://</span>).
+        Para el mapa, asegurate de tener <b>Maps Static API</b> habilitada y la API key restringida por referrer.
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 👉 URL de tu implementación actual (podés cambiarla desde la tarjeta "Configuración")
+    const DEFAULT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxCUgJRZ-BL0Qu9AGebtb7wexf2gWTWFFZI69VzxtaKiXidu_X6Bj1ifdWmFTYvUnSX/exec";
+
+    // ----- Estado y helpers -----
+    const $ = sel => document.querySelector(sel);
+    function getWebAppUrl() {
+      return localStorage.getItem('vig_webapp_url') || DEFAULT_WEBAPP_URL;
+    }
+    function setEstado(texto, ok=false) {
+      $('#estado').textContent = texto;
+      $('#estado').className = ok ? 'ok' : 'warn';
+    }
+    function setKpi(id, texto) { $(id).textContent = texto; }
+
+    // ----- Acciones de diagnóstico -----
+    function probarPing() {
+      const url = getWebAppUrl();
+      // Abrimos el ping en otra pestaña: Apps Script no siempre permite leer CORS desde fetch
+      window.open(url, '_blank');
+      setKpi('#k_backend', 'Ping abierto');
+      setEstado('probando…', false);
+      // Marcamos como verificado al abrir, el resultado lo ves en la pestaña
+      setTimeout(()=> setEstado('verificar en pestaña', false), 300);
     }
 
-    if (req.method !== 'POST') {
-      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders(origin, isAllowed) });
+    function probarGuardado() {
+      const url = getWebAppUrl();
+      const qs = new URLSearchParams({
+        tipo: 'Ronda',
+        nombre: 'Prueba_Index',
+        objetivo: 'Ping',
+        lat: '-31.52',
+        lng: '-68.53',
+        t: Date.now().toString()
+      });
+      const testUrl = url + '?' + qs.toString();
+      window.open(testUrl, '_blank'); // te muestra "OK GET …"
+      setKpi('#k_guardado', 'Intentado');
+      setEstado('probando…', false);
+      setTimeout(()=> setEstado('verificar en pestaña', false), 300);
     }
 
-    let body = {};
-    try {
-      body = await req.json();
-    } catch {
-      return new Response('BAD_REQUEST', { status: 400, headers: corsHeaders(origin, isAllowed) });
+    // ----- Config editable -----
+    function cargarUI() {
+      $('#webapp').value = getWebAppUrl();
+      setEstado('listo', true);
+      setKpi('#k_backend', '—');
+      setKpi('#k_guardado', '—');
+    }
+    function guardarURL() {
+      const val = ($('#webapp').value || '').trim();
+      if (!val || !/^https?:\/\//i.test(val)) { alert('Ingresá una URL válida'); return; }
+      localStorage.setItem('vig_webapp_url', val);
+      setEstado('URL actualizada', true);
+    }
+    function restaurarURL() {
+      localStorage.removeItem('vig_webapp_url');
+      $('#webapp').value = DEFAULT_WEBAPP_URL;
+      setEstado('URL restaurada', true);
     }
 
-    // Campos esperados
-    const { tipo, nombre, objetivo, lat, lng, recaptchaToken } = body || {};
+    // Init
+    cargarUI();
+  </script>
+</body>
+</html>
 
-    // reCAPTCHA v3 (server-side)
-    if (!recaptchaToken) return new Response('FORBIDDEN', { status: 403, headers: corsHeaders(origin, isAllowed) });
-    const vr = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      body: new URLSearchParams({ secret: env.RECAPTCHA_SECRET, response: recaptchaToken })
-    });
-    const vj = await vr.json().catch(() => ({}));
-    if (!vj.success || (vj.score || 0) < 0.5) {
-      return new Response('FORBIDDEN', { status: 403, headers: corsHeaders(origin, isAllowed) });
-    }
-
-    // Validaciones mínimas
-    const _lat = Number(lat), _lng = Number(lng);
-    if (!tipo || !nombre || !objetivo || Number.isNaN(_lat) || Number.isNaN(_lng)) {
-      return new Response('BAD_REQUEST', { status: 400, headers: corsHeaders(origin, isAllowed) });
-    }
-
-    // Forward limpio a Apps Script (sin recaptchaToken)
-    const resp = await fetch(env.APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tipo, nombre, objetivo, lat: _lat, lng: _lng })
-    });
-
-    const text = await resp.text();
-    return new Response(text, { status: resp.status, headers: corsHeaders(origin, isAllowed) });
-  }
-};
-
-function corsHeaders(origin, isAllowed) {
-  const h = {
-    'Access-Control-Allow-Methods': 'POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'content-type',
-    'Vary': 'Origin'
-  };
-  if (isAllowed) h['Access-Control-Allow-Origin'] = origin;
-  return h;
-}
 
 
 
