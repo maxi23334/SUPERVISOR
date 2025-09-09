@@ -1,80 +1,117 @@
-<script>
-  const WORKER_URL = "https://YOUR-WORKER.workers.dev";
-  const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_SITE_KEY";
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Rondas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    body{margin:0;font-family:'Poppins',sans-serif;background:#111;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+    h1{font-size:2rem;margin-bottom:20px}
+    input,button{width:260px;padding:10px;margin:10px 0;font-size:1rem;border-radius:6px;border:none}
+    input{background:#222;color:#fff;text-align:center}
+    button{background:#333;color:#fff;cursor:pointer;transition:background .3s}
+    button:hover{background:#555}
+    #output{margin-top:20px;text-align:center;width:100%;max-width:640px}
+    .map-wrap{position:relative;display:inline-block}
+    .map-wrap img{max-width:100%;display:block;border-radius:10px}
+    .overlay{position:absolute;left:10px;top:10px;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;text-align:left;line-height:1.3;font-weight:600}
+  </style>
+  <!-- reCAPTCHA v3 (SITE KEY pública) -->
+  <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+</head>
+<body>
+  <h1>Rondas</h1>
+  <input id="nombre" placeholder="Ingrese su nombre">
+  <input id="objetivo" placeholder="Ingrese el objetivo">
+  <button onclick="generar()">Generar y Guardar</button>
+  <button onclick="location.href='index.html'" style="margin-top:10px">⬅ Volver al Inicio</button>
 
-  async function recaptchaToken(){ await grecaptcha.ready(); return grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:'submit'}); }
-  async function postRegistro(tipo, nombre, objetivo, lat, lng) {
-    const recaptcha = await recaptchaToken();
-    const res = await fetch(WORKER_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ tipo, nombre, objetivo, lat, lng, recaptchaToken: recaptcha })
-    });
-    const txt = await res.text();
-    if (!res.ok) throw new Error(txt||'Error al guardar');
-    return txt;
-  }
-  function staticMapURL(label, lat, lng){
-    const qs = new URLSearchParams({ label, lat, lng, zoom:'18', size:'640x400' });
-    return `${WORKER_URL}/map?${qs.toString()}`;
-  }
-  function nowFmt(){ return new Date().toLocaleString(); }
-  function dlName(prefix, nombre){
-    return `${prefix}_${nombre.replace(/\s+/g,'_')}_${new Date().toISOString().replace(/[:.-]/g,'_')}.png`;
-  }
+  <div id="output"></div>
+  <canvas id="mapCanvas" style="display:none;"></canvas>
 
-  async function generar(){
-    const nombre = document.getElementById('nombre').value.trim();
-    const objetivo = document.getElementById('objetivo').value.trim();
-    if (!nombre || !objetivo) { alert('Completá ambos campos.'); return; }
+  <script>
+    // ⬇️ Reemplazá con tu Worker (debe tener /map y CORS habilitado)
+    const WORKER_URL = "https://YOUR-WORKER.workers.dev";
+    const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_SITE_KEY";
 
-    const out = document.getElementById('output');
-    out.innerHTML = '<p>Obteniendo ubicación…</p>';
+    async function recaptchaToken(){ await grecaptcha.ready(); return grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:'submit'}); }
+    async function postRegistro(tipo, nombre, objetivo, lat, lng) {
+      const recaptcha = await recaptchaToken();
+      const res = await fetch(WORKER_URL, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tipo, nombre, objetivo, lat, lng, recaptchaToken: recaptcha })
+      });
+      const txt = await res.text();
+      if (!res.ok) throw new Error(txt||'Error al guardar');
+      return txt;
+    }
+    function staticMapURL(label, lat, lng){
+      const qs = new URLSearchParams({ label, lat, lng, zoom:'18', size:'640x400' });
+      return `${WORKER_URL}/map?${qs.toString()}`;
+    }
+    function nowFmt(){ return new Date().toLocaleString(); }
+    function dlName(prefix, nombre){
+      return `${prefix}_${nombre.replace(/\s+/g,'_')}_${new Date().toISOString().replace(/[:.-]/g,'_')}.png`;
+    }
 
-    if (!navigator.geolocation) { alert('Geolocalización no soportada.'); return; }
+    async function generar(){
+      const nombre = document.getElementById('nombre').value.trim();
+      const objetivo = document.getElementById('objetivo').value.trim();
+      if (!nombre || !objetivo) { alert('Completá ambos campos.'); return; }
 
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      const out = document.getElementById('output');
+      out.innerHTML = '<p>Obteniendo ubicación…</p>';
 
-      try { await postRegistro('Ronda', nombre, objetivo, lat, lng); }
-      catch(e){ alert('No se pudo guardar: ' + e.message); }
+      if (!navigator.geolocation) { alert('Geolocalización no soportada.'); return; }
 
-      const dateStr = nowFmt();
-      const url = staticMapURL('R', lat, lng);
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = url;
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
 
-      img.onload = () => {
-        const canvas = document.getElementById('mapCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-        ctx.drawImage(img, 0, 0);
-        ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(10,10,360,84);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Poppins';
-        ctx.fillText(`👤 ${nombre}`, 20, 36);
-        ctx.fillText(`🎯 ${objetivo}`, 20, 60);
-        ctx.fillText(`📅 ${dateStr}`, 20, 84);
+        // 1) Guardar
+        try { await postRegistro('Ronda', nombre, objetivo, lat, lng); }
+        catch(e){ alert('No se pudo guardar: ' + e.message); }
 
-        const finalImg = new Image();
-        finalImg.src = canvas.toDataURL('image/png');
-        out.innerHTML = "";
-        out.appendChild(finalImg);
+        // 2) Mapa vía Worker + auto-descarga con sello
+        const dateStr = nowFmt();
+        const url = staticMapURL('R', lat, lng);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
 
-        const a = document.createElement('a');
-        a.href = finalImg.src;
-        a.download = dlName('ronda', nombre);
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      };
+        img.onload = () => {
+          const canvas = document.getElementById('mapCanvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(10,10,380,90);
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Poppins';
+          ctx.fillText(`👤 ${nombre}`, 20, 38);
+          ctx.fillText(`🎯 ${objetivo}`, 20, 62);
+          ctx.fillText(`📅 ${dateStr}`, 20, 86);
 
-      img.onerror = () => {
-        out.innerHTML = "<p>No se pudo generar el PNG del mapa (CORS/Worker). Revisá el Worker.</p>";
-      };
+          const finalImg = new Image();
+          finalImg.src = canvas.toDataURL('image/png');
+          out.innerHTML = `<div class="map-wrap"><img src="${finalImg.src}" alt="Mapa con sello"></div>`;
 
-    }, geoError, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
-  }
+          const a = document.createElement('a');
+          a.href = finalImg.src;
+          a.download = dlName('ronda', nombre);
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
 
-  function geoError(err){
-    const m = {1:'Permiso denegado',2:'Posición no disponible',3:'Timeout'}[err.code] || 'Error de geolocalización';
-    alert(m);
-  }
-</script>
+        img.onerror = () => {
+          out.innerHTML = "<p>No se pudo generar el mapa con sello. Verificá que el Worker tenga /map y CORS habilitado.</p>";
+        };
+
+      }, geoError, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+    }
+
+    function geoError(err){
+      const m = {1:'Permiso denegado',2:'Posición no disponible',3:'Timeout'}[err.code] || 'Error de geolocalización';
+      alert(m);
+    }
+  </script>
+</body>
+</html>
