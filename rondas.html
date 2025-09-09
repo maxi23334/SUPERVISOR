@@ -33,8 +33,9 @@
 
   <script>
     // ⬇️ Reemplazá con tu Worker (debe tener /map y CORS habilitado)
-    const WORKER_URL = "https://YOUR-WORKER.workers.dev";
-    const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_SITE_KEY";
+    const WORKER_URL = "https://frosty-cake-3ccd.elvigilante1.workers.dev";
+    const RECAPTCHA_SITE_KEY = "6Le3k8MrAAAAAPzVkceNA4vkkOxWLxUvh9pFJzH3"; // tu site key v3
+
 
     async function recaptchaToken(){ await grecaptcha.ready(); return grecaptcha.execute(RECAPTCHA_SITE_KEY,{action:'submit'}); }
     async function postRegistro(tipo, nombre, objetivo, lat, lng) {
@@ -115,4 +116,5 @@
   </script>
 </body>
 </html>
+
 
