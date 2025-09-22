@@ -2,281 +2,184 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>EL VIGILANTE - Inicio</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EL VIGILANTE – Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="data:,">
   <style>
-    :root{ --bg:#111; --fg:#fff; --muted:#aaa; --card:#181818; --btn:#333; --btnh:#555; --accent:#0ea5e9; }
-    *{ box-sizing:border-box }
-    body{
-      margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--fg);
-      min-height:100vh; display:flex; align-items:center; justify-content:center;
-    }
-    .container{ width:min(900px,92vw); padding:24px; }
-
-    /* Vistas */
-    .view{ display:none; text-align:center; }
-    .view.active{ display:block; }
-
-    /* Comunes */
-    .logo{ width:120px; margin:0 auto 16px; display:block; }
-    h1{ font-size:2rem; margin:.25rem 0 1rem; }
-    .subtitle{ color:var(--muted); margin-bottom:1.25rem; }
-    .menu{ display:flex; flex-direction:column; gap:14px; align-items:center; }
-
-    button, .btn{
-      background:var(--btn); color:#fff; border:none; border-radius:10px;
-      padding:14px 22px; font-size:1.05rem; cursor:pointer; transition:background .2s ease;
-      width:280px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
-    }
-    button:hover, .btn:hover{ background:var(--btnh); }
-
-    /* Admin (nueva) */
-    .cards{
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:12px;
-    }
-    .card{ background:var(--card); border:1px solid #222; border-radius:14px; padding:16px; text-align:left; }
-    .card h3{ margin:0 0 8px; font-size:1.05rem; }
-    .card p{ margin:0; color:var(--muted); font-size:.95rem; }
-
-    /* Switch flotante */
-    .switch{
-      position:fixed; right:14px; bottom:14px; background:var(--accent);
-      color:#001018; border:none; border-radius:999px; padding:10px 14px; font-weight:600; cursor:pointer;
-      box-shadow:0 6px 18px rgba(14,165,233,.35);
-    }
-    .role-badge{
-      display:inline-block; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:600;
-      background:rgba(255,255,255,.08); border:1px solid #2a2a2a; color:#ddd; margin-top:6px;
-    }
-
-    /* Vigilador (anterior) */
-    .vigilador .menu button{ width:250px; }
-
-    <button onclick="location.href='objetivo-mapa.html'">📍 Objetivo (Mapa único)</button>
-
-    /* Modal contraseña */
-    .modal{
-      position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:16px;
-    }
-    .modal.show{ display:flex; }
-    .modal-card{
-      width:100%; max-width:360px; background:#171717; border:1px solid #262626; border-radius:14px; padding:18px;
-      box-shadow:0 20px 60px rgba(0,0,0,.45);
-    }
-    .modal-card h3{ margin:0 0 10px; font-size:1.1rem; }
-    .modal-card p{ margin:0 0 12px; color:#bbb; font-size:.95rem; }
-    .modal-card input{
-      width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2a2a2a; background:#1f1f1f; color:#fff; outline:none;
-    }
-    .row{ display:flex; gap:10px; margin-top:12px; }
-    .row .btn{ width:100%; justify-content:center; }
-    .err{ color:#ff6b6b; font-size:.9rem; margin-top:8px; min-height:1em; }
+    :root { --bg:#111; --fg:#fff; --mut:#bbb; --card:#171717; --border:#2a2a2a; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;display:flex;flex-direction:column}
+    header{text-align:center;padding:18px}
+    .logo{width:120px;margin-bottom:10px}
+    h1{margin:6px 0 0}
+    .menu{display:flex;flex-direction:column;gap:12px;align-items:center;margin:12px 0 24px}
+    button{background:#333;color:#fff;border:none;border-radius:6px;padding:14px 22px;font-size:1.1rem;cursor:pointer;transition:.2s}
+    button:hover{background:#555}
+    .adminBtn{margin-top:6px;font-size:.95rem;padding:10px 16px;background:#222}
+    .muted{color:var(--mut);font-size:.95rem}
+    /* Admin panel */
+    #adminPanel{display:none}
+    .wrap{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+    input,select{padding:10px;border-radius:8px;border:1px solid var(--border);background:#1b1b1b;color:#fff}
+    #map{flex:1;min-height:60vh;margin:10px 16px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#1b1b1b;margin-left:6px}
+    .ok{color:#9fe29f}.warn{color:#ffd27a}.err{color:#ff8a8a}
   </style>
+  <!-- Leaflet para el mapa de admin -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
-  <div class="container">
-    <!-- VISTA ADMIN (NUEVA) -->
-    <section id="view-admin" class="view">
-      <img src="img/escudo.png" alt="Escudo" class="logo">
-      <h1>EL VIGILANTE</h1>
-      <div class="role-badge">Vista: Admin</div>
-      <p class="subtitle">Panel principal</p>
 
-      <div class="cards">
-        <div class="card">
-          <h3>Accesos rápidos</h3>
-          <div class="menu" style="margin-top:10px;">
-            <a class="btn" href="ingreso-salida.html">🚪 Ingreso y Salida</a>
-            <a class="btn" href="rondas.html">📝 Rondas</a>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Reportes</h3>
-          <p>Revisa los baches de rondas y el reporte diario (08:00) en Telegram.</p>
-        </div>
-        <div class="card">
-          <h3>Estado</h3>
-          <p>WebApp: <span id="status-webapp">—</span></p>
-        </div>
-      </div>
-    </section>
+  <!-- Vista VIGILADOR (pública) -->
+  <header id="vigHeader">
+    <img src="img/escudo.png" alt="Escudo" class="logo">
+    <h1>EL VIGILANTE</h1>
+    <p class="muted">Seleccioná una opción</p>
+  </header>
 
-    <!-- VISTA VIGILADOR (ANTERIOR) -->
-    <section id="view-vigilador" class="view vigilador">
-      <img src="img/escudo.png" alt="Escudo" class="logo">
-      <h1>EL VIGILANTE</h1>
-      <div class="role-badge">Vista: Vigilador</div>
-      <div class="menu" style="margin-top:16px;">
-        <button onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
-        <button onclick="location.href='rondas.html'">📝 Rondas</button>
-        <button onclick="location.href='objetivo-mapa.html'">📍 Objetivo (Mapa único)</button>
-      </div>
-    </section>
+  <div id="vigMenu" class="menu">
+    <button onclick="location.href='ingreso-salida.html'">🚪 Ingreso y Salida</button>
+    <button onclick="location.href='rondas.html'">📝 Rondas</button>
+    <button onclick="location.href='objetivo-mapa.html'">📍 Objetivo (Mapa único)</button>
+    <button class="adminBtn" id="btnAdmin">🔒 Ingresar como administrador</button>
   </div>
 
-  <!-- Botón flotante para cambiar vista -->
-  <button class="switch" id="btn-switch" title="Cambiar vista">Cambiar vista</button>
+  <!-- Panel ADMIN (protegido por contraseña) -->
+  <div id="adminPanel">
+    <header>
+      <h1>Panel de administrador</h1>
+      <p class="muted">Monitoreo en vivo – cada marca agrega un pin en este mapa.</p>
+      <button class="adminBtn" onclick="logoutAdmin()">Salir de admin</button>
+    </header>
 
-  <!-- Modal contraseña -->
-  <div class="modal" id="pwd-modal" aria-hidden="true">
-    <div class="modal-card">
-      <h3>Acceso Admin</h3>
-      <p>Ingresá la contraseña para ver la vista de administrador.</p>
-      <input id="pwd-input" type="password" placeholder="Contraseña" autocomplete="current-password">
-      <div class="err" id="pwd-err"></div>
-      <div class="row">
-        <button class="btn" id="pwd-cancel">Cancelar</button>
-        <button class="btn" id="pwd-ok">Entrar</button>
+    <div class="wrap">
+      <div class="card">
+        <div class="muted">Objetivo</div>
+        <input id="objetivo" placeholder="Objetivo fijo" style="min-width:240px">
+        <button onclick="aplicarObjetivo()">Aplicar</button>
+      </div>
+
+      <div class="card">
+        <div class="muted">Auto-refresh</div>
+        <select id="selInt" onchange="aplicarObjetivo()">
+          <option value="10000">10 s</option>
+          <option value="15000" selected>15 s</option>
+          <option value="30000">30 s</option>
+          <option value="60000">60 s</option>
+        </select>
+        <div class="muted">Umbral sin señal: <b id="thLbl">40</b> min</div>
+      </div>
+
+      <div class="card">
+        <div class="muted">Pines: <b id="count">0</b></div>
+        <div class="muted">Última marca: <b id="last">—</b> <span id="lag" class="badge">—</span></div>
+        <div class="muted">Estado: <b id="state" class="ok">OK</b></div>
       </div>
     </div>
+
+    <div id="map"></div>
   </div>
 
-  <script>
-    // ====== Config opcional de ping de salud (dejar vacío si no querés) ======
-    const WEBAPP_PING_URL = ""; // por ej: "https://script.google.com/.../exec"
-    // ========================================================================
+  <footer class="muted" style="text-align:center;padding:10px 0 18px">© EL VIGILANTE</footer>
 
-    const V_ADMIN = 'admin';
-    const V_VIGI  = 'vigilador';
+<script>
+/* ======= CONFIG ======= */
+const WORKER_URL = "https://frosty-cake-3ccd.elvigilante1.workers.dev";
+const ADMIN_PASS = "maximo3636";
+const ALERT_THRESHOLD_MIN = 40;
+/* ====================== */
 
-    // SHA-256("maximo3636") en hex (para no exponer texto plano en el código)
-    const ADMIN_PASS_HASH = "faac93ccc2814d37d89402b846e6089045593a9c2425273638125528ba231de3";
+/* Login admin (simple, en cliente) */
+document.getElementById('btnAdmin').onclick = async () => {
+  const pw = prompt('Contraseña de administrador:');
+  if (pw === ADMIN_PASS) {
+    sessionStorage.setItem('adminOK','1');
+    mostrarAdmin(true);
+  } else if (pw !== null) {
+    alert('Contraseña incorrecta');
+  }
+};
+function logoutAdmin(){
+  sessionStorage.removeItem('adminOK');
+  mostrarAdmin(false);
+}
+function mostrarAdmin(isAdmin){
+  document.getElementById('vigHeader').style.display = isAdmin ? 'none' : '';
+  document.getElementById('vigMenu').style.display   = isAdmin ? 'none' : '';
+  document.getElementById('adminPanel').style.display= isAdmin ? '' : 'none';
+  if (isAdmin) iniciarMapa(); else detenerTimer();
+}
+if (sessionStorage.getItem('adminOK')==='1') mostrarAdmin(true);
 
-    const qSel = s => document.querySelector(s);
-    const viewAdmin = qSel('#view-admin');
-    const viewVigi  = qSel('#view-vigilador');
-    const btnSwitch = qSel('#btn-switch');
+/* ====== Mapa de ADMIN (Leaflet) ====== */
+let map, layerPins, bounds=null, timer=null, iniciado=false;
 
-    const modal   = qSel('#pwd-modal');
-    const pwdIn   = qSel('#pwd-input');
-    const pwdErr  = qSel('#pwd-err');
-    const pwdOk   = qSel('#pwd-ok');
-    const pwdCancel = qSel('#pwd-cancel');
+function iniciarMapa(){
+  if (iniciado) return;
+  iniciado = true;
+  document.getElementById('thLbl').textContent = ALERT_THRESHOLD_MIN;
+  // valor inicial del objetivo
+  const p = new URLSearchParams(location.search);
+  document.getElementById('objetivo').value = p.get('objetivo') || 'Objetivo Especial B';
 
-    // ========= Utilidades =========
-    function getParam(name){
-      const m = new URLSearchParams(location.search).get(name);
-      return m ? String(m) : null;
-    }
-    function setRole(role){
-      localStorage.setItem('role', role);
-    }
-    function getSavedRole(){
-      return localStorage.getItem('role') || V_VIGI;
-    }
-    async function sha256Hex(text){
-      const enc = new TextEncoder().encode(text);
-      const buf = await crypto.subtle.digest('SHA-256', enc);
-      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-    }
+  map = L.map('map',{ zoomControl:true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { maxZoom:20, attribution:'&copy; OpenStreetMap' }).addTo(map);
+  layerPins = L.layerGroup().addTo(map);
+  aplicarObjetivo();
+}
+function detenerTimer(){ if (timer) { clearInterval(timer); timer=null; } }
 
-    function show(role){
-      if (role === V_ADMIN){
-        viewAdmin.classList.add('active');
-        viewVigi.classList.remove('active');
-        btnSwitch.textContent = 'Cambiar a Vigilador';
-      } else {
-        viewVigi.classList.add('active');
-        viewAdmin.classList.remove('active');
-        btnSwitch.textContent = 'Cambiar a Admin';
-      }
-    }
+function fmtAgoMinutes(d){
+  return (Date.now()-d.getTime())/60000;
+}
+function setEstado(ok, minutes){
+  const st = document.getElementById('state');
+  const lag = document.getElementById('lag');
+  if (!ok){ st.textContent='SIN SEÑAL'; st.className='err'; }
+  else if (minutes>ALERT_THRESHOLD_MIN){ st.textContent='TARDE'; st.className='warn'; }
+  else { st.textContent='OK'; st.className='ok'; }
+  lag.textContent = `${Math.round(minutes)} min`;
+}
 
-    // ========= Gate de Admin =========
-    async function requireAdmin(){
-      // ya desbloqueado en esta máquina?
-      if (localStorage.getItem('adminUnlocked') === '1') return true;
+async function cargarPins(obj){
+  const url = `${WORKER_URL}/pins?objetivo=${encodeURIComponent(obj)}&limit=2000`;
+  const res = await fetch(url);
+  if (!res.ok){ throw new Error(`GET /pins ${res.status}`); }
+  const rows = await res.json();
 
-      // abrir modal
-      return new Promise(resolve=>{
-        pwdErr.textContent = '';
-        pwdIn.value = '';
-        modal.classList.add('show');
-        pwdIn.focus();
+  // pintar
+  layerPins.clearLayers(); bounds=null;
+  if (!rows.length){
+    map.setView([-31.54,-68.52], 13);
+    document.getElementById('count').textContent='0';
+    document.getElementById('last').textContent='—';
+    setEstado(false, 999);
+    return;
+  }
+  rows.forEach(r=>{
+    L.marker([r.lat,r.lng]).addTo(layerPins).bindPopup(`<b>${r.nombre||'—'}</b><br>${r.objetivo}<br>${r.fechaSJ}`);
+    bounds = bounds? bounds.extend([r.lat,r.lng]) : L.latLngBounds([r.lat,r.lng],[r.lat,r.lng]);
+  });
+  if (bounds) map.fitBounds(bounds,{padding:[30,30]});
 
-        async function tryLogin(){
-          const hash = await sha256Hex(pwdIn.value);
-          if (hash === ADMIN_PASS_HASH){
-            localStorage.setItem('adminUnlocked','1');
-            modal.classList.remove('show');
-            resolve(true);
-          } else {
-            pwdErr.textContent = 'Contraseña incorrecta.';
-            pwdIn.select();
-          }
-        }
+  document.getElementById('count').textContent = rows.length.toString();
+  const last = new Date(rows[rows.length-1].fechaISO);
+  document.getElementById('last').textContent = rows[rows.length-1].fechaSJ;
+  setEstado(true, fmtAgoMinutes(last));
+}
 
-        function cancel(){
-          modal.classList.remove('show');
-          resolve(false);
-        }
-
-        pwdOk.onclick = tryLogin;
-        pwdCancel.onclick = cancel;
-        pwdIn.onkeydown = (e)=>{ if(e.key==='Enter') tryLogin(); if(e.key==='Escape') cancel(); };
-      });
-    }
-
-    async function goAdmin(){
-      const ok = await requireAdmin();
-      if (ok){
-        setRole(V_ADMIN);
-        show(V_ADMIN);
-      } else {
-        // si falla, volvemos a vigilador
-        setRole(V_VIGI);
-        show(V_VIGI);
-      }
-    }
-
-    // ========= Init =========
-    (async function init(){
-      // rol por querystring o guardado
-      const qRole = getParam('role');
-      let role = (qRole===V_ADMIN || qRole===V_VIGI) ? qRole : getSavedRole();
-
-      if (role === V_ADMIN){
-        const ok = await requireAdmin();
-        role = ok ? V_ADMIN : V_VIGI;
-        setRole(role);
-      } else {
-        setRole(V_VIGI);
-      }
-      show(role);
-
-      // botón switch
-      btnSwitch.addEventListener('click', async ()=>{
-        const current = localStorage.getItem('role') || V_VIGI;
-        if (current === V_VIGI) {
-          await goAdmin();
-        } else {
-          setRole(V_VIGI); show(V_VIGI);
-        }
-      });
-
-      // atajos: Shift+V / Shift+A
-      window.addEventListener('keydown', async (e)=>{
-        if (!e.shiftKey) return;
-        if (e.key.toLowerCase()==='v'){ setRole(V_VIGI); show(V_VIGI); }
-        if (e.key.toLowerCase()==='a'){ await goAdmin(); }
-      });
-
-      // ping opcional
-      if (WEBAPP_PING_URL){
-        const el = document.getElementById('status-webapp');
-        if (el){
-          try{
-            const r = await fetch(WEBAPP_PING_URL, { method:'GET', cache:'no-store' });
-            el.textContent = r.ok ? 'UP' : ('Error '+r.status);
-          }catch(err){ el.textContent = 'Sin conexión'; }
-        }
-      }
-    })();
-  </script>
+function aplicarObjetivo(){
+  const obj = document.getElementById('objetivo').value.trim();
+  if (!obj){ alert('Ingresá un objetivo'); return; }
+  cargarPins(obj).catch(e=>alert(e.message));
+  detenerTimer();
+  const iv = parseInt(document.getElementById('selInt').value,10) || 15000;
+  timer = setInterval(()=>cargarPins(obj).catch(()=>{}), iv);
+}
+</script>
 </body>
 </html>
-
-
-
