@@ -18,14 +18,19 @@
     button:hover{background:#555}
     .adminBtn{margin-top:6px;font-size:.95rem;padding:10px 16px;background:#222}
     .muted{color:var(--mut);font-size:.95rem}
+
     /* Admin panel */
-    #adminPanel{display:none}
+    #adminPanel{display:none;flex:1;min-height:100vh;flex-direction:column}
+    #adminHeader{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:#0f0f0f}
+    #btnBack{background:#222;padding:8px 12px;font-size:.95rem}
     .wrap{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
     input,select{padding:10px;border-radius:8px;border:1px solid var(--border);background:#1b1b1b;color:#fff}
     #map{flex:1;min-height:60vh;margin:10px 16px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
     .badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#1b1b1b;margin-left:6px}
     .ok{color:#9fe29f}.warn{color:#ffd27a}.err{color:#ff8a8a}
+    #adminMsg{margin:0 16px;color:#ffd27a}
+    footer{color:var(--mut);text-align:center;padding:10px 0 18px}
   </style>
   <!-- Leaflet para el mapa de admin -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -49,22 +54,22 @@
 
   <!-- Panel ADMIN (protegido por contraseña) -->
   <div id="adminPanel">
-    <header>
-      <h1>Panel de administrador</h1>
-      <p class="muted">Monitoreo en vivo – cada marca agrega un pin en este mapa.</p>
-      <button class="adminBtn" onclick="logoutAdmin()">Salir de admin</button>
-    </header>
+    <div id="adminHeader">
+      <button id="btnBack">← Volver al menú</button>
+      <div style="font-weight:600">Panel de administrador</div>
+      <div id="adminMsg" class="muted"></div>
+    </div>
 
     <div class="wrap">
       <div class="card">
         <div class="muted">Objetivo</div>
         <input id="objetivo" placeholder="Objetivo fijo" style="min-width:240px">
-        <button onclick="aplicarObjetivo()">Aplicar</button>
+        <button id="btnAplicar">Aplicar</button>
       </div>
 
       <div class="card">
         <div class="muted">Auto-refresh</div>
-        <select id="selInt" onchange="aplicarObjetivo()">
+        <select id="selInt">
           <option value="10000">10 s</option>
           <option value="15000" selected>15 s</option>
           <option value="30000">30 s</option>
@@ -83,103 +88,10 @@
     <div id="map"></div>
   </div>
 
-  <footer class="muted" style="text-align:center;padding:10px 0 18px">© EL VIGILANTE</footer>
+  <footer>© EL VIGILANTE</footer>
 
 <script>
 /* ======= CONFIG ======= */
-const WORKER_URL = "https://frosty-cake-3ccd.elvigilante1.workers.dev";
-const ADMIN_PASS = "maximo3636";
-const ALERT_THRESHOLD_MIN = 40;
-/* ====================== */
+const WORKER_URL = "https://frosty-cake-3ccd.elvigilante_
 
-/* Login admin (simple, en cliente) */
-document.getElementById('btnAdmin').onclick = async () => {
-  const pw = prompt('Contraseña de administrador:');
-  if (pw === ADMIN_PASS) {
-    sessionStorage.setItem('adminOK','1');
-    mostrarAdmin(true);
-  } else if (pw !== null) {
-    alert('Contraseña incorrecta');
-  }
-};
-function logoutAdmin(){
-  sessionStorage.removeItem('adminOK');
-  mostrarAdmin(false);
-}
-function mostrarAdmin(isAdmin){
-  document.getElementById('vigHeader').style.display = isAdmin ? 'none' : '';
-  document.getElementById('vigMenu').style.display   = isAdmin ? 'none' : '';
-  document.getElementById('adminPanel').style.display= isAdmin ? '' : 'none';
-  if (isAdmin) iniciarMapa(); else detenerTimer();
-}
-if (sessionStorage.getItem('adminOK')==='1') mostrarAdmin(true);
 
-/* ====== Mapa de ADMIN (Leaflet) ====== */
-let map, layerPins, bounds=null, timer=null, iniciado=false;
-
-function iniciarMapa(){
-  if (iniciado) return;
-  iniciado = true;
-  document.getElementById('thLbl').textContent = ALERT_THRESHOLD_MIN;
-  // valor inicial del objetivo
-  const p = new URLSearchParams(location.search);
-  document.getElementById('objetivo').value = p.get('objetivo') || 'Objetivo Especial B';
-
-  map = L.map('map',{ zoomControl:true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { maxZoom:20, attribution:'&copy; OpenStreetMap' }).addTo(map);
-  layerPins = L.layerGroup().addTo(map);
-  aplicarObjetivo();
-}
-function detenerTimer(){ if (timer) { clearInterval(timer); timer=null; } }
-
-function fmtAgoMinutes(d){
-  return (Date.now()-d.getTime())/60000;
-}
-function setEstado(ok, minutes){
-  const st = document.getElementById('state');
-  const lag = document.getElementById('lag');
-  if (!ok){ st.textContent='SIN SEÑAL'; st.className='err'; }
-  else if (minutes>ALERT_THRESHOLD_MIN){ st.textContent='TARDE'; st.className='warn'; }
-  else { st.textContent='OK'; st.className='ok'; }
-  lag.textContent = `${Math.round(minutes)} min`;
-}
-
-async function cargarPins(obj){
-  const url = `${WORKER_URL}/pins?objetivo=${encodeURIComponent(obj)}&limit=2000`;
-  const res = await fetch(url);
-  if (!res.ok){ throw new Error(`GET /pins ${res.status}`); }
-  const rows = await res.json();
-
-  // pintar
-  layerPins.clearLayers(); bounds=null;
-  if (!rows.length){
-    map.setView([-31.54,-68.52], 13);
-    document.getElementById('count').textContent='0';
-    document.getElementById('last').textContent='—';
-    setEstado(false, 999);
-    return;
-  }
-  rows.forEach(r=>{
-    L.marker([r.lat,r.lng]).addTo(layerPins).bindPopup(`<b>${r.nombre||'—'}</b><br>${r.objetivo}<br>${r.fechaSJ}`);
-    bounds = bounds? bounds.extend([r.lat,r.lng]) : L.latLngBounds([r.lat,r.lng],[r.lat,r.lng]);
-  });
-  if (bounds) map.fitBounds(bounds,{padding:[30,30]});
-
-  document.getElementById('count').textContent = rows.length.toString();
-  const last = new Date(rows[rows.length-1].fechaISO);
-  document.getElementById('last').textContent = rows[rows.length-1].fechaSJ;
-  setEstado(true, fmtAgoMinutes(last));
-}
-
-function aplicarObjetivo(){
-  const obj = document.getElementById('objetivo').value.trim();
-  if (!obj){ alert('Ingresá un objetivo'); return; }
-  cargarPins(obj).catch(e=>alert(e.message));
-  detenerTimer();
-  const iv = parseInt(document.getElementById('selInt').value,10) || 15000;
-  timer = setInterval(()=>cargarPins(obj).catch(()=>{}), iv);
-}
-</script>
-</body>
-</html>
