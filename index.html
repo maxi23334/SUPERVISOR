@@ -5,9 +5,9 @@
   <title>EL VIGILANTE – Inicio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:,"><!-- evita 404 del favicon -->
   <style>
-    :root { --bg:#111; --fg:#fff; --mut:#bbb; --card:#171717; --border:#2a2a2a; }
+    :root{--bg:#111;--fg:#fff;--mut:#bbb;--card:#171717;--border:#2a2a2a}
     *{box-sizing:border-box}
     body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;display:flex;flex-direction:column}
     header{text-align:center;padding:18px}
@@ -18,27 +18,26 @@
     button:hover{background:#555}
     .adminBtn{margin-top:6px;font-size:.95rem;padding:10px 16px;background:#222}
     .muted{color:var(--mut);font-size:.95rem}
-
     /* Admin panel */
-    #adminPanel{display:none;flex:1;min-height:100vh;flex-direction:column}
-    #adminHeader{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:#0f0f0f}
-    #btnBack{background:#222;padding:8px 12px;font-size:.95rem}
+    #adminPanel{display:none;flex:1;min-height:100vh;flex-direction:column;background:#0f0f0f}
+    #adminHeader{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:#0f0f0f}
+    #btnBack{background:#222;padding:8px 12px;font-size:.95rem;border:1px solid var(--border)}
+    #msg{margin-left:auto;color:#ffd27a;font-size:.95rem}
     .wrap{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
     input,select{padding:10px;border-radius:8px;border:1px solid var(--border);background:#1b1b1b;color:#fff}
-    #map{flex:1;min-height:60vh;margin:10px 16px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+    #map{flex:1;min-height:60vh;margin:10px 16px;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:#111}
     .badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#1b1b1b;margin-left:6px}
     .ok{color:#9fe29f}.warn{color:#ffd27a}.err{color:#ff8a8a}
-    #adminMsg{margin:0 16px;color:#ffd27a}
     footer{color:var(--mut);text-align:center;padding:10px 0 18px}
   </style>
-  <!-- Leaflet para el mapa de admin -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
 
-  <!-- Vista VIGILADOR (pública) -->
+  <!-- Vista vigilador -->
   <header id="vigHeader">
     <img src="img/escudo.png" alt="Escudo" class="logo">
     <h1>EL VIGILANTE</h1>
@@ -52,12 +51,12 @@
     <button class="adminBtn" id="btnAdmin">🔒 Ingresar como administrador</button>
   </div>
 
-  <!-- Panel ADMIN (protegido por contraseña) -->
+  <!-- Panel admin -->
   <div id="adminPanel">
     <div id="adminHeader">
       <button id="btnBack">← Volver al menú</button>
       <div style="font-weight:600">Panel de administrador</div>
-      <div id="adminMsg" class="muted"></div>
+      <div id="msg"></div>
     </div>
 
     <div class="wrap">
@@ -66,7 +65,6 @@
         <input id="objetivo" placeholder="Objetivo fijo" style="min-width:240px">
         <button id="btnAplicar">Aplicar</button>
       </div>
-
       <div class="card">
         <div class="muted">Auto-refresh</div>
         <select id="selInt">
@@ -77,7 +75,6 @@
         </select>
         <div class="muted">Umbral sin señal: <b id="thLbl">40</b> min</div>
       </div>
-
       <div class="card">
         <div class="muted">Pines: <b id="count">0</b></div>
         <div class="muted">Última marca: <b id="last">—</b> <span id="lag" class="badge">—</span></div>
@@ -85,13 +82,104 @@
       </div>
     </div>
 
-    <div id="map"></div>
+    <div id="map"><!-- si Leaflet falla, igual ves el header y el botón volver --></div>
   </div>
 
   <footer>© EL VIGILANTE</footer>
 
 <script>
 /* ======= CONFIG ======= */
-const WORKER_URL = "https://frosty-cake-3ccd.elvigilante_
+const WORKER_URL = "https://frosty-cake-3ccd.elvigilante1.workers.dev";
+const ADMIN_PASS = "maximo3636";
+const ALERT_THRESHOLD_MIN = 40;
+/* ====================== */
+const $ = s=>document.querySelector(s);
+const log = t=>{ console.log(t); $('#msg').textContent=t; };
+
+// login admin (prompt)
+$('#btnAdmin').onclick = () => {
+  const pw = prompt('Contraseña de administrador:');
+  if (pw === ADMIN_PASS){ sessionStorage.setItem('adminOK','1'); mostrarAdmin(true); }
+  else if (pw!==null){ alert('Contraseña incorrecta'); }
+};
+$('#btnBack').onclick = () => { sessionStorage.removeItem('adminOK'); mostrarAdmin(false); };
+
+function mostrarAdmin(on){
+  $('#vigHeader').style.display = on? 'none':'';
+  $('#vigMenu').style.display   = on? 'none':'';
+  $('#adminPanel').style.display= on? 'flex':'none';
+  if (on) iniciarMapa(); else detenerTimer();
+}
+if (sessionStorage.getItem('adminOK')==='1') mostrarAdmin(true);
+
+/* ====== mapa admin ====== */
+let map, layerPins, bounds=null, timer=null, iniciado=false;
+function iniciarMapa(){
+  if (iniciado) return; iniciado=true;
+  $('#thLbl').textContent = ALERT_THRESHOLD_MIN;
+  const p = new URLSearchParams(location.search);
+  $('#objetivo').value = p.get('objetivo') || 'Objetivo Especial B';
+
+  // protegemos contra extensiones que rompen el DOM
+  setTimeout(()=>{
+    try{
+      if (!window.L){ log('Leaflet no cargó (CDN). Probá recargar o desactivar extensiones.'); return; }
+      map = L.map('map',{ zoomControl:true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'&copy; OpenStreetMap'}).addTo(map);
+      layerPins = L.layerGroup().addTo(map);
+      aplicarObjetivo();
+      log('Mapa iniciado');
+    }catch(e){
+      log('Error iniciando mapa: '+e.message);
+    }
+  }, 50);
+}
+function detenerTimer(){ if (timer){ clearInterval(timer); timer=null; } }
+
+function setEstado(ok, minutes){
+  const st=$('#state'), lag=$('#lag');
+  if (!ok){ st.textContent='SIN SEÑAL'; st.className='err'; }
+  else if (minutes>ALERT_THRESHOLD_MIN){ st.textContent='TARDE'; st.className='warn'; }
+  else { st.textContent='OK'; st.className='ok'; }
+  lag.textContent = `${Math.round(minutes)} min`;
+}
+function minsSince(d){ return (Date.now()-d.getTime())/60000; }
+
+async function cargarPins(obj){
+  const url = `${WORKER_URL}/pins?objetivo=${encodeURIComponent(obj)}&limit=2000`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`GET /pins ${res.status}`);
+  const rows = await res.json();
+
+  layerPins.clearLayers(); bounds=null;
+  if (!rows.length){
+    map.setView([-31.54,-68.52],13);
+    $('#count').textContent='0'; $('#last').textContent='—'; setEstado(false,999);
+    return;
+  }
+  rows.forEach(r=>{
+    L.marker([r.lat,r.lng]).addTo(layerPins).bindPopup(`<b>${r.nombre||'—'}</b><br>${r.objetivo}<br>${r.fechaSJ}`);
+    bounds = bounds? bounds.extend([r.lat,r.lng]) : L.latLngBounds([r.lat,r.lng],[r.lat,r.lng]);
+  });
+  if (bounds) map.fitBounds(bounds,{padding:[30,30]});
+  $('#count').textContent=rows.length.toString();
+  const last = new Date(rows[rows.length-1].fechaISO);
+  $('#last').textContent = rows[rows.length-1].fechaSJ;
+  setEstado(true, minsSince(last));
+}
+function aplicarObjetivo(){
+  const obj = $('#objetivo').value.trim();
+  if (!obj){ alert('Ingresá un objetivo'); return; }
+  cargarPins(obj).catch(e=>{ log('Error cargando pins: '+e.message); alert('Error cargando pins: '+e.message); });
+  detenerTimer();
+  const iv = parseInt($('#selInt').value,10) || 15000;
+  timer = setInterval(()=>cargarPins(obj).catch(()=>{}), iv);
+}
+$('#btnAplicar').onclick = aplicarObjetivo;
+</script>
+</body>
+</html>
+
+
 
 
