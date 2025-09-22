@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Objetivo – Mapa único</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    body{margin:0;font-family:'Poppins',sans-serif;background:#111;color:#fff;display:flex;flex-direction:column;min-height:100vh}
+    header,footer{padding:12px 16px;text-align:center}
+    h1{margin:8px 0 0}
+    .wrap{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+    input,button{width:100%;max-width:320px;padding:10px;font-size:1rem;border-radius:6px;border:none}
+    input{background:#222;color:#fff;text-align:center}
+    button{background:#333;color:#fff;cursor:pointer} button:hover{background:#555}
+    #map{flex:1;min-height:50vh;margin:10px 16px;border-radius:10px;overflow:hidden;border:1px solid #2a2a2a}
+    .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .muted{color:#bbb;font-size:.95rem}
+  </style>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-o9N1j7kGStbQ8U6Y4ZCkxz97T8ne5lGkG3S2m3bCi2U=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o8U3Q3b3QW1fSxD7fR1S3O1bw3kD6nJQkBt9x0i0f2Y=" crossorigin=""></script>
+  <!-- reCAPTCHA v3 (SITE KEY pública) -->
+  <script src="https://www.google.com/recaptcha/api.js?render=6Le3k8MrAAAAAPzVkceNA4vkkOxWLxUvh9pFJzH3" async defer></script>
+</head>
+<body>
+  <header>
+    <h1>Objetivo – Mapa único</h1>
+    <p class="muted">Cada toque agrega un pin al mismo mapa (para este objetivo).</p>
+  </header>
+
+  <div class="wrap">
+    <input id="nombre" placeholder="Ingrese su nombre">
+    <div class="row">
+      <button id="btnMark">📍 Marcar ahora</button>
+      <button onclick="refrescar()">🔄 Refrescar mapa</button>
+      <button onclick="location.href='index.html'">⬅ Volver</button>
+    </div>
+    <div class="muted">Objetivo fijo: <b id="objLbl"></b></div>
+  </div>
+
+  <div id="map"></div>
+
+  <footer class="muted">Mapa: © OpenStreetMap, Leaflet</footer>
+
+  <script>
+    // ====== CONFIG ======
+    const WORKER_URL = "https://frosty-cake-3ccd.elvigilante1.workers.dev"; // tu Worker
+    const RECAPTCHA_SITE_KEY = "6Le3k8MrAAAAAPzVkceNA4vkkOxWLxUvh9pFJzH3"; // tu site key v3
+    const OBJETIVO_FIJO = "Objetivo Especial B"; // <- cambialo al texto que vos quieras
+
+    // ====== reCAPTCHA helper ======
+    function recaptchaToken() {
+      return new Promise((resolve, reject) => {
+        if (!window.grecaptcha) return reject(new Error('reCAPTCHA no cargado'));
+        grecaptcha.ready(() => {
+          grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit' })
+            .then(resolve).catch(reject);
+        });
+      });
+    }
+
+    async function postRegistro(tipo, nombre, objetivo, lat, lng) {
+      const token = await recaptchaToken();
+      const res = await fetch(WORKER_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tipo, nombre, objetivo, lat, lng, recaptchaToken: token })
+      });
+      const txt = await res.text();
+      if (!res.ok) throw new Error(txt || 'Error al guardar');
+      return txt;
+    }
+
+    // ====== Mapa (Leaflet) ======
+    const map = L.map('map', { zoomControl:true });
+    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    const layer = L.layerGroup().addTo(map);
+
+    let bounds = null;
+    function fit() { if (bounds) map.fitBounds(bounds, { padding:[30,30] }); }
+
+    async function cargarPins() {
+      document.getElementById('objLbl').textContent = OBJETIVO_FIJO;
+      layer.clearLayers();
+      bounds = null;
+
+      const url = `${WORKER_URL}/pins?objetivo=${encodeURIComponent(OBJETIVO_FIJO)}&limit=1000`;
+      const res = await fetch(url);
+      if (!res.ok) { alert('No se pudieron cargar pins'); return; }
+      const rows = await res.json();
+      if (!rows || !rows.length) {
+        // vista por defecto (San Juan aprox)
+        map.setView([-31.54, -68.52], 13);
+        return;
+      }
+      rows.forEach(r => {
+        const m = L.marker([r.lat, r.lng]).addTo(layer)
+          .bindPopup(`<b>${r.nombre || '—'}</b><br>${r.objetivo}<br>${r.fechaSJ}`);
+        if (!bounds) bounds = L.latLngBounds([r.lat, r.lng], [r.lat, r.lng]);
+        else bounds.extend([r.lat, r.lng]);
+      });
+      fit();
+    }
+
+    async function marcarAhora() {
+      const nombre = document.getElementById('nombre').value.trim();
+      if (!nombre) { alert('Ingresá tu nombre'); return; }
+      if (!navigator.geolocation) { alert('Geolocalización no soportada'); return; }
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        try {
+          await postRegistro('ObjetivoPin', nombre, OBJETIVO_FIJO, pos.coords.latitude, pos.coords.longitude);
+          await cargarPins(); // actualiza el mapa
+        } catch (e) {
+          alert('No se pudo guardar: ' + e.message);
+        }
+      }, err => {
+        const m = {1:'Permiso denegado',2:'Posición no disponible',3:'Timeout'}[err.code] || 'Error de geolocalización';
+        alert(m);
+      }, { enableHighAccuracy:true, timeout:12000, maximumAge:1000 });
+    }
+
+    function refrescar(){ cargarPins(); }
+
+    // init
+    document.getElementById('btnMark').addEventListener('click', marcarAhora);
+    cargarPins();
+  </script>
+</body>
+</html>
